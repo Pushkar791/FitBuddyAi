@@ -152,6 +152,9 @@ document.addEventListener('DOMContentLoaded', function() {
           
           // Hide profile menu
           profileMenuContainer.style.display = 'none';
+          
+          // Show welcome popup after a small delay
+          setTimeout(showWelcomePopup, 2000);
         }
       });
     } catch (error) {
@@ -162,9 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.error('Firebase SDK not loaded');
     alert('Firebase SDK not loaded. Please check your internet connection and try again.');
   }
-  
-  // Show welcome popup after a small delay
-  setTimeout(showWelcomePopup, 2000);
 });
 
 // Function to load authentication page
@@ -608,66 +608,76 @@ function signOut() {
 
 // Add function to show welcome popup for new users
 function showWelcomePopup() {
-  // Check if user has seen the popup before
-  if (localStorage.getItem('welcomePopupShown')) {
+  // Check if user has seen the popup before or is already logged in
+  if (localStorage.getItem('welcomePopupShown') || firebase.auth().currentUser) {
     return;
   }
   
-  // Create welcome popup element
-  const popupOverlay = document.createElement('div');
-  popupOverlay.className = 'welcome-popup-overlay';
-  
-  popupOverlay.innerHTML = `
-    <div class="welcome-popup">
-      <button class="welcome-popup-close"><i class="fas fa-times"></i></button>
-      <div class="welcome-popup-content">
-        <h3>Welcome to FitBuddy!</h3>
-        <p>Sign up or log in to save your progress and access all features.</p>
-        <div class="welcome-popup-warning">
-          <i class="fas fa-exclamation-triangle"></i>
-          <p>Without an account, your data might be lost when you close the browser.</p>
-        </div>
-        <div class="welcome-popup-buttons">
-          <button id="welcome-signup-btn" class="btn btn-primary">Sign Up</button>
-          <button id="welcome-login-btn" class="btn btn-secondary">Log In</button>
-          <button id="welcome-later-btn" class="btn btn-text">Maybe Later</button>
+  // Double check with firebase auth - never show popup to authenticated users
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      // User is authenticated, don't show popup
+      return;
+    }
+    
+    // Create welcome popup element
+    const popupOverlay = document.createElement('div');
+    popupOverlay.className = 'welcome-popup-overlay';
+    
+    popupOverlay.innerHTML = `
+      <div class="welcome-popup">
+        <button class="welcome-popup-close"><i class="fas fa-times"></i></button>
+        <div class="welcome-popup-content">
+          <h3>Welcome to FitBuddy!</h3>
+          <p>Sign up or log in to save your progress and access all features.</p>
+          <div class="welcome-popup-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Without an account, your data might be lost when you close the browser.</p>
+          </div>
+          <div class="welcome-popup-buttons">
+            <button id="welcome-signup-btn" class="btn btn-primary">Sign Up</button>
+            <button id="welcome-login-btn" class="btn btn-secondary">Log In</button>
+            <button id="welcome-later-btn" class="btn btn-text">Maybe Later</button>
+          </div>
         </div>
       </div>
-    </div>
-  `;
-  
-  document.body.appendChild(popupOverlay);
-  
-  // Add event listeners
-  const closeBtn = popupOverlay.querySelector('.welcome-popup-close');
-  const signupBtn = popupOverlay.querySelector('#welcome-signup-btn');
-  const loginBtn = popupOverlay.querySelector('#welcome-login-btn');
-  const laterBtn = popupOverlay.querySelector('#welcome-later-btn');
-  
-  function closePopup() {
-    popupOverlay.classList.add('closing');
+    `;
+    
+    document.body.appendChild(popupOverlay);
+    
+    // Add event listeners
+    const closeBtn = popupOverlay.querySelector('.welcome-popup-close');
+    const signupBtn = popupOverlay.querySelector('#welcome-signup-btn');
+    const loginBtn = popupOverlay.querySelector('#welcome-login-btn');
+    const laterBtn = popupOverlay.querySelector('#welcome-later-btn');
+    
+    function closePopup() {
+      popupOverlay.classList.add('closing');
+      setTimeout(() => {
+        if (document.body.contains(popupOverlay)) {
+          document.body.removeChild(popupOverlay);
+        }
+      }, 300);
+      localStorage.setItem('welcomePopupShown', 'true');
+    }
+    
+    closeBtn.addEventListener('click', closePopup);
+    
+    signupBtn.addEventListener('click', function() {
+      closePopup();
+      loadAuthPage('signup');
+    });
+    
+    loginBtn.addEventListener('click', function() {
+      closePopup();
+      loadAuthPage('login');
+    });
+    
+    laterBtn.addEventListener('click', closePopup);
+    
+    // Show popup with animation
     setTimeout(() => {
-      document.body.removeChild(popupOverlay);
-    }, 300);
-    localStorage.setItem('welcomePopupShown', 'true');
-  }
-  
-  closeBtn.addEventListener('click', closePopup);
-  
-  signupBtn.addEventListener('click', function() {
-    closePopup();
-    loadAuthPage('signup');
+      popupOverlay.classList.add('active');
+    }, 1000);
   });
-  
-  loginBtn.addEventListener('click', function() {
-    closePopup();
-    loadAuthPage('login');
-  });
-  
-  laterBtn.addEventListener('click', closePopup);
-  
-  // Show popup with animation
-  setTimeout(() => {
-    popupOverlay.classList.add('active');
-  }, 1000);
 } 
