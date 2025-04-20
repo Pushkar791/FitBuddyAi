@@ -209,6 +209,15 @@ function loadAuthPage(page) {
     </div>
   `;
   
+  // Enable body scrolling for auth modals
+  document.body.style.overflow = 'hidden';
+  authContainer.style.overflowY = 'auto';
+  
+  // Make sure the container allows scrolling on mobile
+  authContainer.addEventListener('touchmove', function(e) {
+    e.stopPropagation();
+  }, { passive: true });
+  
   // Attach event listeners to forms
   if (page === 'login') {
     document.getElementById('login-form').addEventListener('submit', handleLogin);
@@ -237,6 +246,9 @@ function closeAuthPage() {
   if (authContainer) {
     authContainer.style.display = 'none';
   }
+  
+  // Restore body scrolling
+  document.body.style.overflow = '';
   
   currentAuthPage = null;
 }
