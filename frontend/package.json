@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "firebase": "^11.6.0",
+    "react-router-dom": "^7.5.1"
+  },
+  "scripts": {
+    "build": "mkdir -p public && cp -r assets public/ && echo 'Build completed'"
+  }
+}
