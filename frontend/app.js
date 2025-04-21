@@ -309,26 +309,52 @@ function initPeriodTracker() {
 
 // Save period data to API
 function savePeriodDataToAPI(data) {
-    fetch(`${API_URL}/period-data`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-        console.log('Period data saved to API:', result);
-        if (!result.success) {
-            // Fall back to localStorage if API save fails
+    // First try to save to Firebase if user is logged in
+    const user = firebase.auth().currentUser;
+    if (user) {
+        // Save period data to Firebase
+        console.log("Saving period data to Firebase for user:", user.uid);
+        const db = firebase.firestore();
+        db.collection('user_period_data').doc(user.uid).set({
+            periodData: data,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true })
+        .then(() => {
+            console.log("Period data successfully saved to Firebase");
+        })
+        .catch((error) => {
+            console.error("Error saving period data to Firebase:", error);
+            // Fall back to API if Firebase fails
+            saveToAPI();
+        });
+    } else {
+        // If not logged in, fall back to API
+        saveToAPI();
+    }
+    
+    // Function to save to API
+    function saveToAPI() {
+        fetch(`${API_URL}/period-data`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log('Period data saved to API:', result);
+            if (!result.success) {
+                // Fall back to localStorage if API save fails
+                savePeriodData(data);
+            }
+        })
+        .catch(error => {
+            console.error('Error saving period data to API:', error);
+            // Fall back to localStorage
             savePeriodData(data);
-        }
-    })
-    .catch(error => {
-        console.error('Error saving period data to API:', error);
-        // Fall back to localStorage
-        savePeriodData(data);
-    });
+        });
+    }
 }
 
 // Save period data to localStorage
@@ -336,38 +362,70 @@ function savePeriodData(data) {
     localStorage.setItem('fitbuddy_period_data', JSON.stringify(data));
 }
 
-// Load saved period data from localStorage
-function loadSavedPeriodData() {
-    const savedData = localStorage.getItem('fitbuddy_period_data');
+// Load period data from all possible sources
+function loadPeriodData() {
+    // First try to load from Firebase if user is logged in
+    const user = firebase.auth().currentUser;
     
-    if (savedData) {
-        const data = JSON.parse(savedData);
-        
-        // Populate form with saved data
-        if (document.getElementById('last-period-date')) {
-            document.getElementById('last-period-date').value = data.lastPeriodDate;
-        }
-        if (document.getElementById('cycle-length')) {
-            document.getElementById('cycle-length').value = data.cycleLength;
-        }
-        if (document.getElementById('period-length')) {
-            document.getElementById('period-length').value = data.periodLength;
-        }
-        
-        // Calculate predictions if we have data
-        if (data.lastPeriodDate) {
-            const lastPeriodDate = new Date(data.lastPeriodDate);
-            const cycleLength = parseInt(data.cycleLength) || 28;
-            const periodLength = parseInt(data.periodLength) || 5;
-            
-            const nextPeriod = calculateNextPeriod(lastPeriodDate, cycleLength);
-            const fertileWindow = calculateFertileWindow(nextPeriod, cycleLength);
-            const ovulationDay = calculateOvulationDay(nextPeriod, cycleLength);
-            
-            updatePeriodPredictions(nextPeriod, fertileWindow, ovulationDay, periodLength);
-            
-            // Initialize calendar with period data
-            initPeriodCalendar(lastPeriodDate, cycleLength, periodLength);
+    if (user) {
+        console.log("Loading period data from Firebase for user:", user.uid);
+        const db = firebase.firestore();
+        return db.collection('user_period_data').doc(user.uid).get()
+            .then((doc) => {
+                if (doc.exists && doc.data().periodData) {
+                    console.log("Retrieved period data from Firebase");
+                    return doc.data().periodData;
+                } else {
+                    console.log("No period data found in Firebase, trying API");
+                    // Try API next
+                    return loadFromAPI();
+                }
+            })
+            .catch((error) => {
+                console.error("Error getting period data from Firebase:", error);
+                // Try API next
+                return loadFromAPI();
+            });
+    } else {
+        // Not logged in, try API
+        return loadFromAPI();
+    }
+    
+    // Function to load from API
+    function loadFromAPI() {
+        return fetch(`${API_URL}/period-data`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.periodData) {
+                    console.log('Period data loaded from API');
+                    return data.periodData;
+                } else {
+                    // Fall back to localStorage
+                    console.log('No period data from API, trying localStorage');
+                    return loadFromLocalStorage();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading period data from API:', error);
+                // Fall back to localStorage
+                return loadFromLocalStorage();
+            });
+    }
+    
+    // Function to load from localStorage
+    function loadFromLocalStorage() {
+        const storedData = localStorage.getItem('fitbuddy_period_data');
+        if (storedData) {
+            try {
+                console.log('Period data loaded from localStorage');
+                return JSON.parse(storedData);
+            } catch (e) {
+                console.error('Error parsing period data from localStorage:', e);
+                return null;
+            }
+        } else {
+            console.log('No period data found in localStorage');
+            return null;
         }
     }
 }
@@ -2676,6 +2734,11 @@ function initStressReliefGames() {
     let lastShootTime = 0;
     let ammo = 6;
     let currentGame = 'shooter';
+    let highScores = {
+        shooter: 0,
+        balloon: 0,
+        ninja: 0
+    };
     
     // Check if elements exist
     if (!gameCanvas || !gameVideo || !gameHandCanvas) {
@@ -2684,6 +2747,9 @@ function initStressReliefGames() {
     }
     
     console.log("Game elements found, initializing...");
+    
+    // Load user high scores if available
+    loadUserGameData();
     
     // Sound effects
     const shotSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3');
@@ -2744,6 +2810,9 @@ function initStressReliefGames() {
                             gameTitle.textContent = 'Ninja Slice';
                             break;
                     }
+                    
+                    // Update high score display for the selected game
+                    updateHighScoreDisplay();
                 }
                 
                 // Reset game if it's running
@@ -3058,6 +3127,21 @@ function initStressReliefGames() {
         
         // Show the start overlay
         if (gameStartOverlay) gameStartOverlay.style.display = 'flex';
+        
+        // Update high score if needed
+        if (score > highScores[currentGame]) {
+            highScores[currentGame] = score;
+            updateHighScoreDisplay();
+            showGameFeedback('New High Score: ' + score + '!');
+            
+            // Save the updated high score
+            saveUserGameData();
+        }
+        
+        // Reset state
+        targets = [];
+        score = 0;
+        ammo = 6;
     }
     
     // Create a new target
@@ -3299,6 +3383,97 @@ function initStressReliefGames() {
         stopGameCamera();
         stopGame();
     });
+
+    // Add functions for user game data sync
+    // Load user game data from Firebase
+    function loadUserGameData() {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            console.log("User not logged in, using local storage for game data");
+            // Fall back to localStorage if user not logged in
+            const localHighScores = localStorage.getItem('fitbuddy_game_highscores');
+            if (localHighScores) {
+                try {
+                    highScores = JSON.parse(localHighScores);
+                    updateHighScoreDisplay();
+                } catch (e) {
+                    console.error("Error parsing local high scores:", e);
+                }
+            }
+            return;
+        }
+
+        console.log("Loading game data for user:", user.uid);
+        
+        // Get user data from Firestore
+        const db = firebase.firestore();
+        db.collection('user_game_data').doc(user.uid).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    console.log("Retrieved user game data:", data);
+                    
+                    // Update high scores
+                    if (data.highScores) {
+                        highScores = data.highScores;
+                        updateHighScoreDisplay();
+                    }
+                } else {
+                    console.log("No game data found for user, creating new record");
+                    // Create a new document for the user
+                    saveUserGameData();
+                }
+            })
+            .catch((error) => {
+                console.error("Error getting user game data:", error);
+                
+                // Fall back to localStorage
+                const localHighScores = localStorage.getItem('fitbuddy_game_highscores');
+                if (localHighScores) {
+                    try {
+                        highScores = JSON.parse(localHighScores);
+                        updateHighScoreDisplay();
+                    } catch (e) {
+                        console.error("Error parsing local high scores:", e);
+                    }
+                }
+            });
+    }
+
+    // Save user game data to Firebase
+    function saveUserGameData() {
+        // Always save to localStorage as backup
+        localStorage.setItem('fitbuddy_game_highscores', JSON.stringify(highScores));
+        
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            console.log("User not logged in, game data saved only to localStorage");
+            return;
+        }
+        
+        console.log("Saving game data for user:", user.uid);
+        
+        // Save to Firestore
+        const db = firebase.firestore();
+        db.collection('user_game_data').doc(user.uid).set({
+            highScores: highScores,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true })
+            .then(() => {
+                console.log("Game data successfully saved to Firebase");
+            })
+            .catch((error) => {
+                console.error("Error saving game data to Firebase:", error);
+            });
+    }
+
+    // Update high score display if it exists
+    function updateHighScoreDisplay() {
+        const highScoreElement = document.getElementById('high-score');
+        if (highScoreElement) {
+            highScoreElement.textContent = highScores[currentGame];
+        }
+    }
 }
 
 // Air Piano Game State
@@ -4818,4 +4993,42 @@ function initStatisticsCounters() {
     
     // Check on initial load
     checkCounters();
+}
+
+// Load saved period data from localStorage
+function loadSavedPeriodData() {
+    loadPeriodData()
+        .then(data => {
+            if (data) {
+                // Populate form with saved data
+                if (document.getElementById('last-period-date')) {
+                    document.getElementById('last-period-date').value = data.lastPeriodDate;
+                }
+                if (document.getElementById('cycle-length')) {
+                    document.getElementById('cycle-length').value = data.cycleLength;
+                }
+                if (document.getElementById('period-length')) {
+                    document.getElementById('period-length').value = data.periodLength;
+                }
+                
+                // Calculate predictions if we have data
+                if (data.lastPeriodDate) {
+                    const lastPeriodDate = new Date(data.lastPeriodDate);
+                    const cycleLength = parseInt(data.cycleLength) || 28;
+                    const periodLength = parseInt(data.periodLength) || 5;
+                    
+                    const nextPeriod = calculateNextPeriod(lastPeriodDate, cycleLength);
+                    const fertileWindow = calculateFertileWindow(nextPeriod, cycleLength);
+                    const ovulationDay = calculateOvulationDay(nextPeriod, cycleLength);
+                    
+                    updatePeriodPredictions(nextPeriod, fertileWindow, ovulationDay, periodLength);
+                    
+                    // Initialize calendar with period data
+                    initPeriodCalendar(lastPeriodDate, cycleLength, periodLength);
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error loading period data:", error);
+        });
 }

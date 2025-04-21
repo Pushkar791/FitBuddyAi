@@ -137,6 +137,9 @@ document.addEventListener('DOMContentLoaded', function() {
           updateProfileMenu(user);
           profileMenuContainer.style.display = 'block';
           
+          // Sync user data when signed in
+          syncUserData(user);
+          
           if (currentAuthPage) {
             window.location.hash = 'dashboard';
             closeAuthPage();
@@ -682,4 +685,164 @@ function showWelcomePopup() {
   setTimeout(() => {
     popupOverlay.classList.add('active');
   }, 1000);
+}
+
+// Function to sync user data across devices
+function syncUserData(user) {
+  console.log('Syncing user data across devices for:', user.email);
+  
+  try {
+    // Get Firestore instance
+    const db = firebase.firestore();
+    
+    // 1. Sync user profile data
+    syncProfileData(db, user);
+    
+    // 2. Sync game data
+    syncGameData(db, user);
+    
+    // 3. Sync period data
+    syncPeriodData(db, user);
+  } catch (error) {
+    console.error('Error syncing user data:', error);
+  }
+}
+
+// Sync user profile data
+function syncProfileData(db, user) {
+  db.collection('user_profiles').doc(user.uid).get()
+    .then(doc => {
+      if (!doc.exists) {
+        // Create new profile document from any local data if available
+        const localName = localStorage.getItem('fitbuddy_user_name');
+        
+        const profileData = {
+          displayName: localName || user.displayName || '',
+          email: user.email,
+          photoURL: user.photoURL || '',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        db.collection('user_profiles').doc(user.uid).set(profileData)
+          .then(() => console.log('User profile created'))
+          .catch(error => console.error('Error creating profile:', error));
+      }
+    })
+    .catch(error => console.error('Error checking user profile:', error));
+}
+
+// Sync game data
+function syncGameData(db, user) {
+  // Check if there's local game data
+  const localHighScores = localStorage.getItem('fitbuddy_game_highscores');
+  if (localHighScores) {
+    const localData = JSON.parse(localHighScores);
+    
+    // Get remote game data
+    db.collection('user_game_data').doc(user.uid).get()
+      .then(doc => {
+        if (doc.exists) {
+          // Merge local and remote high scores, taking the highest values
+          const remoteData = doc.data();
+          if (remoteData.highScores) {
+            const mergedHighScores = {};
+            
+            // Get the highest score for each game type
+            for (const game in localData) {
+              mergedHighScores[game] = Math.max(
+                localData[game] || 0, 
+                remoteData.highScores[game] || 0
+              );
+            }
+            
+            // Add any remote games that aren't in local data
+            for (const game in remoteData.highScores) {
+              if (!mergedHighScores[game]) {
+                mergedHighScores[game] = remoteData.highScores[game];
+              }
+            }
+            
+            // Update remote and local data if there are differences
+            if (JSON.stringify(mergedHighScores) !== JSON.stringify(remoteData.highScores)) {
+              // Update Firestore
+              db.collection('user_game_data').doc(user.uid).update({
+                highScores: mergedHighScores,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+              })
+              .then(() => {
+                console.log('Game data synced to Firebase');
+                // Update local storage
+                localStorage.setItem('fitbuddy_game_highscores', JSON.stringify(mergedHighScores));
+              })
+              .catch(error => console.error('Error updating game data:', error));
+            }
+          } else {
+            // No remote high scores, just upload local ones
+            db.collection('user_game_data').doc(user.uid).update({
+              highScores: localData,
+              lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => console.log('Local game data saved to Firebase'))
+            .catch(error => console.error('Error saving game data to Firebase:', error));
+          }
+        } else {
+          // No remote data exists, create new document with local data
+          db.collection('user_game_data').doc(user.uid).set({
+            highScores: localData,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+          })
+          .then(() => console.log('Game data created in Firebase'))
+          .catch(error => console.error('Error creating game data in Firebase:', error));
+        }
+      })
+      .catch(error => console.error('Error retrieving game data:', error));
+  }
+}
+
+// Sync period data
+function syncPeriodData(db, user) {
+  // Check if there's local period data
+  const localPeriodData = localStorage.getItem('fitbuddy_period_data');
+  if (localPeriodData) {
+    const localData = JSON.parse(localPeriodData);
+    
+    // Get remote period data
+    db.collection('user_period_data').doc(user.uid).get()
+      .then(doc => {
+        if (doc.exists && doc.data().periodData) {
+          const remoteData = doc.data().periodData;
+          
+          // Determine which data is more recent if both have timestamps
+          let useLocalData = true;
+          
+          if (localData.timestamp && remoteData.timestamp) {
+            // Use the more recent data
+            useLocalData = new Date(localData.timestamp) > new Date(remoteData.timestamp);
+          }
+          
+          if (useLocalData) {
+            // Update remote data with local data
+            db.collection('user_period_data').doc(user.uid).update({
+              periodData: localData,
+              lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => console.log('Period data updated in Firebase'))
+            .catch(error => console.error('Error updating period data in Firebase:', error));
+          } else {
+            // Update local data with remote data
+            localStorage.setItem('fitbuddy_period_data', JSON.stringify(remoteData));
+            console.log('Local period data updated from Firebase');
+          }
+        } else {
+          // No remote data exists, create new document with local data
+          db.collection('user_period_data').doc(user.uid).set({
+            periodData: localData,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+          })
+          .then(() => console.log('Period data created in Firebase'))
+          .catch(error => console.error('Error creating period data in Firebase:', error));
+        }
+      })
+      .catch(error => console.error('Error retrieving period data:', error));
+  }
 } 
