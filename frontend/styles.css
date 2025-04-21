@@ -285,6 +285,7 @@ nav ul li a.active::after {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+  overflow-y: visible; /* Ensure content can scroll */
 }
 
 .nav-container {
@@ -2519,6 +2520,11 @@ input:checked + .toggle-slider:before {
 /* Stress Relief Games Styles */
 #stress-games {
   background-color: #fafafa;
+  position: relative;
+  overflow-y: visible;
+  height: auto; /* Auto height */
+  min-height: auto; /* No minimum height */
+  padding-bottom: 50px; /* Extra padding at bottom */
 }
 
 .games-container {
@@ -2526,6 +2532,8 @@ input:checked + .toggle-slider:before {
   flex-direction: column;
   gap: 1.5rem;
   padding: 2rem;
+  overflow-y: visible; /* Enable vertical scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Game Selection */
@@ -2647,6 +2655,8 @@ input:checked + .toggle-slider:before {
   justify-content: center;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 10;
+  overflow-y: auto; /* Enable scrolling */
+  padding: 20px 0;
 }
 
 .game-instructions {
@@ -2655,6 +2665,9 @@ input:checked + .toggle-slider:before {
   border-radius: 12px;
   max-width: 80%;
   text-align: center;
+  position: relative;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .game-instructions h3 {
@@ -2672,6 +2685,18 @@ input:checked + .toggle-slider:before {
 
 .game-instructions button {
   margin-top: 1rem;
+  position: relative;
+  z-index: 11; /* Ensure button is clickable */
+  font-size: 16px;
+  padding: 12px 24px;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  min-height: 48px; /* Ensure good touch target */
 }
 
 .game-crosshair {
@@ -2776,6 +2801,8 @@ input:checked + .toggle-slider:before {
   justify-content: space-between;
   align-items: center;
   margin-top: 1rem;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  gap: 10px; /* Add gap between items */
 }
 
 .gesture-status, .gesture-detected {
@@ -2783,6 +2810,49 @@ input:checked + .toggle-slider:before {
   background-color: rgba(255, 255, 255, 0.7);
   padding: 0.5rem 1rem;
   border-radius: 20px;
+  flex: 1; /* Allow items to grow */
+  min-width: 120px; /* Ensure minimum width */
+  text-align: center;
+}
+
+/* Style the button specifically */
+#toggle-game-camera {
+  padding: 10px 15px;
+  font-size: 14px;
+  min-height: 44px; /* Good touch target */
+  border-radius: 25px;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 150px;
+}
+
+#toggle-game-camera:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+#start-game-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  background: linear-gradient(45deg, #4CAF50, #8BC34A);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  min-height: 48px;
+  min-width: 180px;
+  margin: 15px auto;
+  display: block;
 }
 
 /* Game Info Cards */
@@ -2791,6 +2861,7 @@ input:checked + .toggle-slider:before {
   gap: 1rem;
   flex-wrap: wrap;
   margin-top: 1.5rem;
+  overflow: visible;
 }
 
 .info-card {
@@ -2860,13 +2931,56 @@ input:checked + .toggle-slider:before {
     height: 300px;
   }
   
+  .games-container {
+    padding: 1.5rem 1rem;
+  }
+  
   .game-controls {
     flex-direction: column;
     gap: 0.5rem;
+    margin-bottom: 80px; /* Add space at bottom to ensure Start Game button is visible */
   }
   
   .game-controls > * {
     width: 100%;
+  }
+  
+  .game-start-overlay {
+    overflow-y: auto; /* Make instructions scrollable */
+  }
+  
+  .game-instructions {
+    max-width: 90%;
+    padding: 1.5rem;
+    overflow-y: auto; /* Enable scrolling for instructions */
+    max-height: 80vh;
+  }
+  
+  #toggle-game-camera, 
+  #start-game-btn {
+    padding: 12px;
+    font-size: 16px;
+    min-height: 50px; /* Larger touch target */
+    margin: 10px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-viewport {
+    height: 250px;
+  }
+  
+  .game-options {
+    gap: 0.5rem;
+  }
+  
+  .game-option {
+    padding: 0.75rem;
+    min-width: 90px;
+  }
+  
+  .game-controls {
+    margin-bottom: 100px; /* Even more space for smaller devices */
   }
 }
 
@@ -5743,7 +5857,7 @@ section {
 /* Ensure proper section heights and margins */
 @media (max-width: 768px) {
   .section:not(.hero) {
-    min-height: auto;
+    min-height: auto; /* Don't enforce min-height that could cause issues */
     padding-top: 50px;
     padding-bottom: 50px;
   }
@@ -5783,5 +5897,66 @@ section {
   
   .auth-divider {
     margin: 10px 0;
+  }
+}
+
+/* Global section and container improvements for scrolling */
+section {
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: visible; /* Allow vertical scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  overflow-y: visible; /* Ensure content can scroll */
+}
+
+/* Ensure content is visible on mobile devices */
+@media (max-width: 768px) {
+  section {
+    min-height: auto; /* Don't enforce min-height that could cause issues */
+    padding: 40px 0;
+    overflow-y: visible;
+  }
+  
+  /* Space at the bottom of all sections for better mobile experience */
+  section:not(:last-child) {
+    margin-bottom: 20px;
+  }
+  
+  .container {
+    width: 95%;
+    overflow-y: visible;
+    padding-bottom: 30px; /* Add padding at the bottom */
+  }
+}
+
+@media (max-width: 768px) {
+  #stress-games {
+    overflow-y: visible !important; /* Force visible overflow */
+    height: auto !important; /* Force auto height */
+    min-height: auto !important; /* Force no min-height */
+  }
+  
+  .games-container {
+    margin-bottom: 30px; /* Space after the game container */
+  }
+  
+  /* Make sure game controls are fully visible */
+  .game-controls {
+    position: relative; /* Ensure proper stacking */
+    z-index: 5; /* Higher than other elements */
+    padding-bottom: 100px; /* Extra padding to ensure visibility */
+  }
+  
+  /* Force scrolling behavior */
+  body, html {
+    overflow-y: auto !important;
+    height: auto !important;
   }
 }
