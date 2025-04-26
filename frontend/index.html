@@ -1606,8 +1606,14 @@
             appId: "1:771113556092:web:c6c10aeef19e1aa9a8e7bb"
         };
         
-        // Initialize Firebase
+        // Initialize Firebase with special credentials type
         firebase.initializeApp(firebaseConfig);
+
+        // Set persistence to local to improve auth reliability
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+          .catch(function(error) {
+            console.error("Auth persistence error:", error);
+          });
     </script>
 </body>
 </html> 

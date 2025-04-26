@@ -58,8 +58,6 @@ function loadHeader() {
                         <a href="#" class="dropdown-toggle">Health Tools <i class="fas fa-angle-down"></i></a>
                         <ul class="dropdown-menu">
                             <li><a href="index.html#workout-recommendations"><i class="fas fa-dumbbell"></i> Workout Planner</a></li>
-                            <li><a href="tutorials.html"><i class="fas fa-play-circle"></i> Tutorials</a></li>
-                            <li><a href="health-articles.html"><i class="fas fa-newspaper"></i> Health Articles</a></li>
                             <li><a href="index.html#she-sync"><i class="fas fa-calendar-alt"></i> Period Tracker</a></li>
                         </ul>
                     </li>
@@ -221,8 +219,6 @@ function loadFooter() {
                         <li><a href="index.html#hand-gestures">Hand Gestures</a></li>
                         <li><a href="index.html#air-piano">Air Piano</a></li>
                         <li><a href="index.html#stress-games">Stress Games</a></li>
-                        <li><a href="tutorials.html">Tutorials</a></li>
-                        <li><a href="health-articles.html">Health Articles</a></li>
                     </ul>
                 </div>
                 <div class="footer-social">

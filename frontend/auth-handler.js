@@ -364,8 +364,14 @@ function handleLogin(e) {
 }
 
 // Handle signup form submission
-function handleSignup(e) {
-  e.preventDefault();
+function handleSignup(event) {
+  event.preventDefault();
+  
+  // Check if Firebase is initialized
+  if (!firebase.apps.length) {
+    showErrorMessage("Firebase initialization failed. Please try again later.");
+    return;
+  }
   
   if (typeof firebase === 'undefined') {
     console.error('Firebase not initialized');
@@ -373,7 +379,7 @@ function handleSignup(e) {
   }
   
   // Get the form directly
-  const form = e.target;
+  const form = event.target;
   
   // Get form values directly from the form elements
   const name = form.querySelector('#name').value.trim();
@@ -437,49 +443,53 @@ function handleSignup(e) {
     return;
   }
   
-  // Firebase authentication - create new user
+  // If validation passes, create user
   firebase.auth().createUserWithEmailAndPassword(email, password)
     .then((userCredential) => {
-      // Successfully signed up
-      console.log('Signup successful');
-      
-      // Update user profile with name
-      userCredential.user.updateProfile({
+      // Set user display name
+      return userCredential.user.updateProfile({
         displayName: name
       }).then(() => {
-        console.log('User profile updated');
-      }).catch((error) => {
-        console.error('Error updating user profile:', error);
+        console.log("User profile updated successfully");
+        window.location.href = '#dashboard';
       });
-      
-      window.location.hash = 'dashboard';
-      closeAuthPage();
     })
     .catch((error) => {
-      // Handle specific Firebase auth errors with user-friendly messages
-      let errorMessage;
+      console.error("Firebase auth error:", error);
+      submitButton.innerHTML = originalButtonText;
+      submitButton.disabled = false;
       
+      // Handle specific errors
       switch (error.code) {
         case 'auth/email-already-in-use':
-          errorMessage = 'This email is already registered';
+          showErrorMessage("This email is already registered. Please log in instead.");
           break;
         case 'auth/invalid-email':
-          errorMessage = 'Invalid email address format';
+          showErrorMessage("Please enter a valid email address.");
           break;
         case 'auth/weak-password':
-          errorMessage = 'Password is too weak';
+          showErrorMessage("Password should be at least 6 characters.");
+          break;
+        case 'auth/argument-error':
+        case 'auth/invalid-api-key':
+          showErrorMessage("Authentication service error. Please try again later.");
+          // Attempt to re-initialize Firebase
+          setTimeout(() => {
+            if (typeof firebaseConfig !== 'undefined') {
+              try {
+                firebase.initializeApp(firebaseConfig);
+              } catch (e) {
+                console.log("Re-initialization attempted");
+              }
+            }
+          }, 1000);
+          break;
+        case 'auth/network-request-failed':
+          showErrorMessage("Network error. Please check your internet connection.");
           break;
         default:
-          errorMessage = error.message || 'Signup failed. Please try again';
+          showErrorMessage("Signup failed: " + error.message);
       }
-      
-      errorElement.textContent = errorMessage;
-      errorElement.style.display = 'block';
-    })
-    .finally(() => {
-      // Reset button state
-      submitButton.textContent = originalButtonText;
-      submitButton.disabled = false;
     });
 }
 
