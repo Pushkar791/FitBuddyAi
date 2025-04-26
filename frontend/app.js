@@ -121,6 +121,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize custom form controls
     initCustomFormControls();
+    
+    // Initialize profile dropdown
+    initProfileDropdown();
 });
 
 /**
@@ -5317,4 +5320,92 @@ function initCustomFormControls() {
             input.dispatchEvent(event);
         });
     });
+}
+
+/**
+ * Initialize profile dropdown functionality
+ */
+function initProfileDropdown() {
+    const profileToggle = document.getElementById('profile-toggle');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    const logoutButton = document.getElementById('logout-button');
+    
+    // Check if user is logged in (we'll simulate this with localStorage)
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    
+    // For demonstration, let's set the user as logged in
+    if (!isLoggedIn) {
+        localStorage.setItem('isLoggedIn', 'true');
+        document.body.classList.add('logged-in');
+    } else {
+        document.body.classList.add('logged-in');
+    }
+    
+    // Set profile data (in a real app, this would come from the server)
+    const userProfile = {
+        name: 'PUSHKAR MADAAN',
+        email: 'madaanpushkar86@gmail.com',
+        avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
+    };
+    
+    // Update profile elements
+    if (document.getElementById('profile-name')) {
+        document.getElementById('profile-name').textContent = userProfile.name;
+    }
+    
+    if (document.getElementById('dropdown-name')) {
+        document.getElementById('dropdown-name').textContent = userProfile.name;
+    }
+    
+    if (document.getElementById('dropdown-email')) {
+        document.getElementById('dropdown-email').textContent = userProfile.email;
+    }
+    
+    if (document.getElementById('profile-avatar-img')) {
+        document.getElementById('profile-avatar-img').src = userProfile.avatar;
+    }
+    
+    if (document.getElementById('dropdown-avatar-img')) {
+        document.getElementById('dropdown-avatar-img').src = userProfile.avatar;
+    }
+    
+    // Toggle dropdown on click
+    if (profileToggle && profileDropdown) {
+        profileToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            profileToggle.classList.toggle('active');
+            profileDropdown.classList.toggle('show');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!profileDropdown.contains(e.target) && !profileToggle.contains(e.target)) {
+                profileToggle.classList.remove('active');
+                profileDropdown.classList.remove('show');
+            }
+        });
+    }
+    
+    // Handle logout button
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Simulate logout
+            localStorage.setItem('isLoggedIn', 'false');
+            document.body.classList.remove('logged-in');
+            
+            // Redirect to home
+            window.location.href = '#home';
+            
+            // Close dropdown
+            if (profileToggle && profileDropdown) {
+                profileToggle.classList.remove('active');
+                profileDropdown.classList.remove('show');
+            }
+            
+            // Show logout message
+            alert('You have been successfully logged out.');
+        });
+    }
 }
