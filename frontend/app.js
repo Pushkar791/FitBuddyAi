@@ -5178,8 +5178,32 @@ function submitWorkoutForm() {
     // Show loading state
     workoutPlaceholder.innerHTML = `
         <div class="loading-spinner"></div>
-        <p>Analyzing your data and generating recommendations...</p>
+        <p>Analyzing your preferences and generating personalized recommendations...</p>
+        <p class="loading-message">Using AI to find the perfect workout plan for you...</p>
     `;
+    
+    // Simulate loading messages for better UX
+    const loadingMessages = [
+        "Evaluating your fitness goals...",
+        "Analyzing optimal exercise combinations...",
+        "Matching your profile with effective routines...",
+        "Tailoring intensity levels to your experience...",
+        "Finalizing your personalized workout plan..."
+    ];
+    
+    let messageIndex = 0;
+    const loadingMessageElement = document.querySelector('.loading-message');
+    
+    const messageInterval = setInterval(() => {
+        loadingMessageElement.textContent = loadingMessages[messageIndex];
+        loadingMessageElement.style.opacity = 0;
+        
+        setTimeout(() => {
+            loadingMessageElement.style.opacity = 1;
+        }, 200);
+        
+        messageIndex = (messageIndex + 1) % loadingMessages.length;
+    }, 2500);
     
     // Get form data
     const formData = {
@@ -5203,23 +5227,32 @@ function submitWorkoutForm() {
     })
     .then(response => response.json())
     .then(data => {
+        clearInterval(messageInterval);
+        
         if (data.success) {
             displayWorkoutResults(data.recommendation);
         } else {
             console.error('Error getting recommendations:', data.error);
-            alert('Sorry, we encountered an error. Please try again.');
             workoutPlaceholder.innerHTML = `
+                <div style="color: #e74c3c; margin-bottom: 20px; text-align: center;">
+                    <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <p style="font-size: 1.2rem; font-weight: 500;">Sorry, we encountered an error</p>
+                    <p>Please try again or contact support</p>
+                </div>
                 <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80" alt="Workout" class="placeholder-image">
-                <p>Fill out the form to get your personalized workout recommendations</p>
             `;
         }
     })
     .catch(error => {
+        clearInterval(messageInterval);
         console.error('Fetch error:', error);
-        alert('Network error. Please check your connection and try again.');
         workoutPlaceholder.innerHTML = `
+            <div style="color: #e74c3c; margin-bottom: 20px; text-align: center;">
+                <i class="fas fa-wifi-slash" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <p style="font-size: 1.2rem; font-weight: 500;">Network error</p>
+                <p>Please check your connection and try again</p>
+            </div>
             <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80" alt="Workout" class="placeholder-image">
-            <p>Fill out the form to get your personalized workout recommendations</p>
         `;
     });
 }
@@ -5232,49 +5265,109 @@ function displayWorkoutResults(recommendation) {
     const workoutPlaceholder = document.getElementById('workout-placeholder');
     const exercisesList = document.getElementById('exercises-list');
     
+    // Create entrance animation effect
+    document.querySelectorAll('.workout-results-container > *').forEach(el => {
+        el.style.opacity = 0;
+        el.style.transform = 'translateY(20px)';
+    });
+    
     // Set workout type
     document.getElementById('workout-type').textContent = recommendation.recommendation;
     
-    // Set confidence meter
+    // Set confidence meter with animation
     const confidenceBar = document.getElementById('confidence-bar');
     const confidencePercentage = document.getElementById('confidence-percentage');
-    confidenceBar.style.width = `${recommendation.confidence}%`;
-    confidencePercentage.textContent = `${recommendation.confidence}%`;
+    confidenceBar.style.width = '0%';
+    confidencePercentage.textContent = '0%';
     
     // Set workout details
     document.getElementById('workout-duration').textContent = `${recommendation.details.duration} minutes`;
     document.getElementById('workout-intensity').textContent = recommendation.details.intensity.charAt(0).toUpperCase() + 
-                                                              recommendation.details.intensity.slice(1);
+                                                             recommendation.details.intensity.slice(1);
     
     // Clear previous exercises
     exercisesList.innerHTML = '';
     
-    // Add exercises
-    recommendation.details.exercises.forEach(exercise => {
-        const exerciseItem = document.createElement('div');
-        exerciseItem.className = 'exercise-item';
-        
-        exerciseItem.innerHTML = `
-            <div class="exercise-name">${exercise.name}</div>
-            <div class="exercise-sets">
-                <div class="exercise-label">Sets</div>
-                <div>${exercise.sets}</div>
-            </div>
-            <div class="exercise-reps">
-                <div class="exercise-label">Reps</div>
-                <div>${exercise.reps}</div>
-                <div class="exercise-label">Rest</div>
-                <div>${exercise.rest}</div>
-            </div>
-        `;
-        
-        exercisesList.appendChild(exerciseItem);
-    });
-    
-    // Show results, hide placeholder
+    // Show results, hide placeholder with transition
     workoutResults.classList.remove('hidden');
-    workoutPlaceholder.classList.add('hidden');
+    workoutPlaceholder.style.opacity = 0;
     
-    // Scroll to results
-    workoutResults.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+        workoutPlaceholder.classList.add('hidden');
+        
+        // Animate in confidence meter
+        setTimeout(() => {
+            confidenceBar.style.transition = 'width 1.5s ease-in-out';
+            confidenceBar.style.width = `${recommendation.confidence}%`;
+            
+            // Animate confidence percentage counter
+            let currentPercent = 0;
+            const targetPercent = recommendation.confidence;
+            const duration = 1500; // 1.5 seconds
+            const interval = 30; // Update every 30ms
+            const steps = duration / interval;
+            const increment = targetPercent / steps;
+            
+            const percentInterval = setInterval(() => {
+                currentPercent += increment;
+                if (currentPercent >= targetPercent) {
+                    currentPercent = targetPercent;
+                    clearInterval(percentInterval);
+                }
+                confidencePercentage.textContent = `${Math.round(currentPercent)}%`;
+            }, interval);
+        }, 300);
+        
+        // Animate in each exercise with delay
+        recommendation.details.exercises.forEach((exercise, index) => {
+            const exerciseItem = document.createElement('div');
+            exerciseItem.className = 'exercise-item';
+            exerciseItem.style.opacity = 0;
+            exerciseItem.style.transform = 'translateY(20px)';
+            
+            exerciseItem.innerHTML = `
+                <div class="exercise-name">${exercise.name}</div>
+                <div class="exercise-sets">
+                    <div class="exercise-label">Sets</div>
+                    <div>${exercise.sets}</div>
+                </div>
+                <div class="exercise-reps">
+                    <div class="exercise-label">Reps</div>
+                    <div>${exercise.reps}</div>
+                    <div class="exercise-label">Rest</div>
+                    <div>${exercise.rest}</div>
+                </div>
+            `;
+            
+            exercisesList.appendChild(exerciseItem);
+            
+            // Staggered animation
+            setTimeout(() => {
+                exerciseItem.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                exerciseItem.style.opacity = 1;
+                exerciseItem.style.transform = 'translateY(0)';
+            }, 500 + (index * 150));
+        });
+        
+        // Animate in each section
+        document.querySelectorAll('.workout-results-container > *:not(.exercises-container)').forEach((el, index) => {
+            setTimeout(() => {
+                el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                el.style.opacity = 1;
+                el.style.transform = 'translateY(0)';
+            }, 300 + (index * 150));
+        });
+        
+        // Animate in exercises container
+        setTimeout(() => {
+            document.querySelector('.exercises-container').style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            document.querySelector('.exercises-container').style.opacity = 1;
+            document.querySelector('.exercises-container').style.transform = 'translateY(0)';
+        }, 300);
+    }, 400);
+    
+    // Scroll to results with smooth animation
+    setTimeout(() => {
+        workoutResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 600);
 }

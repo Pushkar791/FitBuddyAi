@@ -5981,157 +5981,304 @@ section {
 #workout-recommendations {
     background-color: var(--bg-light);
     padding: 80px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Add a decorative background pattern */
+#workout-recommendations::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.6;
+    z-index: 0;
+}
+
+#workout-recommendations .container {
+    position: relative;
+    z-index: 1;
+}
+
+#workout-recommendations .section-title {
+    margin-bottom: 50px;
+}
+
+#workout-recommendations .section-title h2 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+#workout-recommendations .section-title p {
+    font-size: 1.2rem;
+    max-width: 700px;
+    margin: 0 auto;
 }
 
 .workout-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    gap: 40px;
     margin-top: 40px;
 }
 
 .workout-form-container {
     background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    padding: 40px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.workout-form-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
 }
 
 .workout-form-container h3 {
     color: var(--primary-color);
-    margin-bottom: 20px;
-    font-size: 1.5rem;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    text-align: center;
 }
 
 .workout-results-container {
     background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    padding: 30px;
-    min-height: 500px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    padding: 40px;
+    min-height: 600px;
     display: flex;
     flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.workout-results-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
 }
 
 .workout-header {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
     border-bottom: 1px solid #eee;
-    padding-bottom: 20px;
+    padding-bottom: 25px;
 }
 
 .workout-header h3 {
     color: var(--primary-color);
-    margin-bottom: 15px;
-    font-size: 1.5rem;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    text-align: center;
 }
 
 .recommendation-type {
     display: flex;
     align-items: center;
-    font-size: 1.2rem;
-    margin-bottom: 15px;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 25px;
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
 }
 
 .recommendation-type i {
     color: var(--accent-color);
-    margin-right: 10px;
-    font-size: 1.3rem;
+    margin-right: 12px;
+    font-size: 1.6rem;
+    -webkit-text-fill-color: var(--accent-color);
 }
 
 .confidence-meter {
     display: flex;
     align-items: center;
-    margin-top: 10px;
-    font-size: 0.9rem;
+    margin-top: 15px;
+    font-size: 1.1rem;
+    background: rgba(245, 245, 245, 0.7);
+    padding: 15px;
+    border-radius: 10px;
 }
 
 .meter-label {
-    margin-right: 10px;
+    margin-right: 12px;
     color: #555;
+    font-weight: 500;
 }
 
 .meter {
     background-color: #eee;
-    height: 10px;
+    height: 14px;
     flex-grow: 1;
-    border-radius: 5px;
+    border-radius: 7px;
     overflow: hidden;
-    margin-right: 10px;
+    margin-right: 12px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .meter-bar {
     background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
     height: 100%;
-    border-radius: 5px;
+    border-radius: 7px;
+    box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+    transition: width 1s ease-in-out;
+}
+
+#confidence-percentage {
+    font-weight: 600;
+    color: var(--primary-color);
+    min-width: 50px;
+    text-align: right;
 }
 
 .workout-details {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 25px;
+    margin-bottom: 35px;
+    background: rgba(245, 245, 245, 0.7);
+    padding: 20px;
+    border-radius: 10px;
 }
 
 .detail-item {
     display: flex;
     align-items: center;
-    font-size: 0.95rem;
+    font-size: 1.1rem;
+    padding: 0 15px;
 }
 
 .detail-item i {
     color: var(--accent-color);
-    margin-right: 8px;
+    margin-right: 12px;
+    font-size: 1.4rem;
 }
 
 .detail-item span:first-of-type {
-    margin-right: 5px;
-    font-weight: 500;
+    margin-right: 8px;
+    font-weight: 600;
+    color: #444;
+}
+
+#workout-duration, #workout-intensity {
+    font-weight: 600;
+    color: var(--primary-color);
 }
 
 .exercises-container {
     flex-grow: 1;
+    margin-bottom: 25px;
 }
 
 .exercises-container h4 {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     color: var(--primary-color);
-    font-size: 1.1rem;
+    font-size: 1.4rem;
+    position: relative;
+    display: inline-block;
+}
+
+.exercises-container h4::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), transparent);
+    border-radius: 3px;
 }
 
 .exercises-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
 }
 
 .exercise-item {
     background-color: #f9f9f9;
-    border-radius: 8px;
-    padding: 15px;
+    border-radius: 12px;
+    padding: 20px;
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
     align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+}
+
+.exercise-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
 }
 
 .exercise-name {
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333;
 }
 
 .exercise-sets, .exercise-reps {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 8px;
 }
 
 .exercise-label {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: #666;
-    margin-bottom: 5px;
+    font-weight: 500;
 }
 
 .workout-actions {
     display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    justify-content: center;
+}
+
+.workout-actions button {
+    padding: 14px 25px;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 10px;
-    margin-top: 20px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    min-width: 160px;
+}
+
+#save-workout {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+#save-workout:hover {
+    background-color: #5a67d8;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(90, 103, 216, 0.4);
+}
+
+#share-workout {
+    background-color: white;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+#share-workout:hover {
+    background-color: #f0f5ff;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(90, 103, 216, 0.2);
+}
+
+.workout-actions button i {
+    font-size: 1.2rem;
 }
 
 .placeholder-container {
@@ -6140,399 +6287,244 @@ section {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 25px;
     color: #666;
 }
 
 .placeholder-image {
-    max-width: 60%;
-    border-radius: 10px;
-    opacity: 0.8;
+    max-width: 70%;
+    border-radius: 16px;
+    opacity: 0.9;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.placeholder-container p {
+    font-size: 1.2rem;
+    text-align: center;
+    max-width: 80%;
+}
+
+.placeholder-container:hover .placeholder-image {
+    transform: scale(1.03);
+    opacity: 1;
 }
 
 .hidden {
     display: none;
 }
 
-/* Responsive styles for workout section */
+/* Form styling improvements */
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: #444;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 14px 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    color: #333;
+    background: #f9f9f9;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    outline: none;
+    background: white;
+}
+
+.form-group select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 15px) center;
+    padding-right: 40px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.05rem;
+    color: #444;
+    user-select: none;
+}
+
+.checkbox-container input {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    accent-color: var(--primary-color);
+}
+
+#workout-form .btn-primary {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    margin-top: 15px;
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    border: none;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+#workout-form .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+#workout-form .btn-primary:active {
+    transform: translateY(1px);
+}
+
+/* Loading spinner for workout recommendations */
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 5px solid var(--primary-color);
+    animation: spin 1.5s linear infinite;
+    margin: 0 auto 30px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
 @media (max-width: 992px) {
     .workout-container {
         grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .workout-form-container, 
+    .workout-results-container {
+        padding: 30px;
+    }
+    
+    #workout-recommendations .section-title h2 {
+        font-size: 2.2rem;
     }
 }
 
 @media (max-width: 767px) {
     .workout-details {
         flex-direction: column;
-        gap: 10px;
+        gap: 15px;
     }
     
     .exercise-item {
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 15px;
     }
     
     .exercise-sets, .exercise-reps {
         flex-direction: row;
         justify-content: space-between;
     }
-}
-
-/* Modern Navigation Styles */
-.nav-container {
-    padding: 0 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-#main-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
-.nav-main-menu {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.nav-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-/* Dropdown styles */
-.dropdown {
-    position: relative;
-}
-
-.dropdown-toggle {
-    padding-right: 22px !important;
-    position: relative;
-}
-
-.dropdown-toggle i {
-    font-size: 0.8rem;
-    margin-left: 4px;
-    transition: transform 0.3s ease;
-}
-
-.dropdown:hover .dropdown-toggle i {
-    transform: rotate(180deg);
-}
-
-.dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    min-width: 220px;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    padding: 10px 0;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px);
-    transition: all 0.3s ease;
-    z-index: 1000;
-}
-
-.dropdown:hover .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.dropdown-menu li {
-    margin: 0 !important;
-    padding: 0;
-    width: 100%;
-}
-
-.dropdown-menu li a {
-    color: var(--primary-color) !important;
-    padding: 10px 15px !important;
-    display: flex;
-    align-items: center;
-    text-align: left;
-    font-weight: 400;
-    gap: 10px;
-    transition: all 0.2s ease;
-}
-
-.dropdown-menu li a:hover {
-    background: rgba(102, 126, 234, 0.1);
-    transform: translateX(5px);
-}
-
-.dropdown-menu li a i {
-    width: 18px;
-    text-align: center;
-}
-
-.dropdown-menu li a::after {
-    display: none !important;
-}
-
-/* Theme toggle */
-.theme-toggle {
-    cursor: pointer;
-    width: 35px;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-}
-
-.theme-toggle:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.theme-toggle i {
-    color: white;
-    font-size: 16px;
-}
-
-/* Notification icon */
-.notification-icon {
-    position: relative;
-    cursor: pointer;
-    width: 35px;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-}
-
-.notification-icon:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.notification-icon i {
-    color: white;
-    font-size: 16px;
-}
-
-.notification-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    width: 18px;
-    height: 18px;
-    background: #ff4c4c;
-    color: white;
-    font-size: 10px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Auth buttons */
-.auth-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.btn-login, .btn-signup {
-    padding: 8px 15px !important;
-    border-radius: 6px;
-    text-align: center;
-    font-weight: 500;
-}
-
-.btn-login {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-.btn-signup {
-    background: white;
-    color: var(--primary-color) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.btn-login:hover, .btn-signup:hover {
-    transform: translateY(-2px);
-}
-
-.btn-login::after, .btn-signup::after {
-    display: none !important;
-}
-
-/* Mobile adjustments */
-@media (max-width: 992px) {
-    .nav-main-menu {
-        gap: 5px;
-    }
     
-    .dropdown-menu {
-        min-width: 200px;
-    }
-}
-
-@media (max-width: 768px) {
-    #main-nav {
+    .workout-actions {
         flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .nav-main-menu {
-        flex-direction: column;
-        width: 100%;
-        gap: 0;
-    }
-    
-    .nav-right {
-        margin-top: 20px;
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .dropdown {
-        width: 100%;
-    }
-    
-    .dropdown-toggle {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
         align-items: center;
-        padding: 12px 15px !important;
     }
     
-    .dropdown-menu {
-        position: static;
-        opacity: 0;
-        height: 0;
-        overflow: hidden;
-        visibility: visible;
-        transform: none;
-        box-shadow: none;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: none;
+    .workout-actions button {
         width: 100%;
-        border-radius: 0;
-        margin: 0;
-        padding: 0;
     }
     
-    .dropdown:hover .dropdown-menu {
-        height: auto;
-        padding: 5px 0;
+    .form-group label {
+        font-size: 1rem;
     }
     
-    .dropdown-menu li a {
-        padding: 10px 25px !important;
+    .form-group input,
+    .form-group select {
+        padding: 12px 15px;
+    }
+    
+    #workout-form .btn-primary {
+        padding: 14px;
     }
 }
 
-/* Dark Theme Styles */
-body.dark-theme {
-    background-color: #121212;
-    color: #f5f5f5;
-}
-
-body.dark-theme header {
-    background: linear-gradient(135deg, rgba(45, 52, 71, 0.95), rgba(45, 45, 65, 0.95));
-}
-
-body.dark-theme .dropdown-menu {
-    background: rgba(30, 30, 40, 0.95);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-body.dark-theme .dropdown-menu li a {
-    color: #e0e0e0 !important;
-}
-
-body.dark-theme .dropdown-menu li a:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-body.dark-theme .btn-login {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-theme .btn-signup {
-    background: rgba(102, 126, 234, 0.9);
+.workout-cta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
     color: white !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 15px rgba(102, 126, 234, 0.3);
+    animation: pulseCta 2s infinite;
+    position: relative;
+    overflow: hidden;
 }
 
-body.dark-theme .section, 
-body.dark-theme #workout-recommendations,
-body.dark-theme footer {
-    background-color: #121212;
+.workout-cta::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(45deg);
+    z-index: 0;
+    transition: all 0.6s ease;
+    opacity: 0;
 }
 
-body.dark-theme .feature-card,
-body.dark-theme .workout-form-container,
-body.dark-theme .workout-results-container,
-body.dark-theme .auth-card {
-    background-color: #1e1e2d;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+.workout-cta:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(102, 126, 234, 0.4);
+    animation: none;
 }
 
-body.dark-theme h1, 
-body.dark-theme h2, 
-body.dark-theme h3,
-body.dark-theme .feature-card h3 {
-    color: #f5f5f5;
+.workout-cta:hover::before {
+    transform: rotate(45deg) translate(150%, 150%);
+    opacity: 1;
 }
 
-body.dark-theme p {
-    color: #e0e0e0;
+.workout-cta i {
+    font-size: 1.1rem;
+    z-index: 1;
 }
 
-body.dark-theme .exercise-item {
-    background-color: #252535;
-}
-
-body.dark-theme .theme-toggle,
-body.dark-theme .notification-icon {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-body.dark-theme .form-group input,
-body.dark-theme .form-group select {
-    background-color: #252535;
-    color: #e0e0e0;
-    border-color: #333;
-}
-
-body.dark-theme .form-group label {
-    color: #e0e0e0;
-}
-
-/* Transition for smooth theme switching */
-body, header, .feature-card, .workout-form-container, 
-.workout-results-container, p, h1, h2, h3,
-.exercise-item, .form-group input, .form-group select,
-.dropdown-menu, .btn-login, .btn-signup {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Mobile Adjustments for Dark Theme */
-@media (max-width: 768px) {
-    body.dark-theme .dropdown-menu {
-        background: rgba(35, 35, 45, 0.5);
+@keyframes pulseCta {
+    0% {
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
-
-    body.dark-theme nav.open {
-        background: linear-gradient(135deg, rgba(45, 52, 71, 0.98), rgba(45, 45, 65, 0.98));
+    50% {
+        box-shadow: 0 5px 30px rgba(102, 126, 234, 0.7);
+    }
+    100% {
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
 }
