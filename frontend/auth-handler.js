@@ -78,78 +78,96 @@ const authComponents = {
   }
 };
 
-// Initialize authentication on DOM content loaded
+// Initialize Firebase when the DOM content is loaded
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if Firebase is available
-  if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined') {
-    console.error('Firebase authentication is not initialized');
-    return;
-  }
-  
-  // Get hash from URL
-  const hash = window.location.hash.substring(1);
-  
-  // Open auth page if the hash is login or signup
-  if (hash === 'login') {
-    loadAuthPage('login');
-  } else if (hash === 'signup') {
-    loadAuthPage('signup');
-  }
-  
-  // Set up auth state listener
-  firebase.auth().onAuthStateChanged(function(user) {
-    // Get auth links and profile elements
-    const authLinks = document.querySelectorAll('.auth-link');
-    const userMenu = document.querySelector('.user-menu');
+  // Check if Firebase is loaded properly
+  if (typeof firebase !== 'undefined') {
+    console.log('Firebase SDK loaded');
     
-    if (user) {
-      // User is signed in
-      console.log('User is signed in:', user.email);
+    // Check if Firebase config has been properly set up
+    try {
+      const config = firebase.app().options;
       
-      // Hide auth links
-      authLinks.forEach(link => {
-        link.style.display = 'none';
+      // Check if placeholder values are still being used
+      if (config.apiKey === "YOUR_API_KEY" || 
+          config.apiKey.includes("REPLACE_WITH") || 
+          config.projectId === "YOUR_PROJECT_ID" || 
+          config.projectId.includes("REPLACE_WITH")) {
+        
+        console.error('Firebase configuration contains placeholder values!');
+        alert('Firebase configuration error: You need to replace the placeholder values with your actual Firebase project details. Check the console for more information.');
+        
+        console.log('Follow these steps to set up Firebase:');
+        console.log('1. Go to https://console.firebase.google.com/');
+        console.log('2. Create a new project');
+        console.log('3. Add a web app to your project');
+        console.log('4. Copy the configuration values');
+        console.log('5. Replace the placeholder values in index.html');
+        
+        return;
+      }
+      
+      // Initialize authentication
+      const auth = firebase.auth();
+      
+      // Check if the page loaded with a hash
+      const hash = window.location.hash.substring(1);
+      if (hash === 'login') {
+        loadAuthPage('login');
+      } else if (hash === 'signup') {
+        loadAuthPage('signup');
+      }
+      
+      // Set up auth state listener
+      auth.onAuthStateChanged(function(user) {
+        // Get auth links and profile elements
+        const authLinks = document.querySelectorAll('.auth-link');
+        const profileMenuContainer = document.getElementById('profile-menu-container') || createProfileMenuContainer();
+        
+        if (user) {
+          // User is signed in
+          console.log('User is signed in:', user.email);
+          
+          // Hide auth links
+          authLinks.forEach(link => {
+            link.parentElement.style.display = 'none';
+          });
+          
+          // Show profile menu with user info
+          updateProfileMenu(user);
+          profileMenuContainer.style.display = 'block';
+          
+          // Sync user data when signed in
+          syncUserData(user);
+          
+          if (currentAuthPage) {
+            window.location.hash = 'dashboard';
+            closeAuthPage();
+          }
+        } else {
+          // User is signed out
+          console.log('User is signed out');
+          
+          // Show auth links
+          authLinks.forEach(link => {
+            link.parentElement.style.display = 'block';
+          });
+          
+          // Hide profile menu
+          profileMenuContainer.style.display = 'none';
+        }
       });
-      
-      // Show user menu
-      if (userMenu) {
-        userMenu.style.display = 'flex';
-        updateUserMenu(user);
-      }
-      
-      // Sync user data when signed in
-      syncUserData(user);
-      
-      // Close auth page if open
-      if (currentAuthPage) {
-        window.location.hash = 'dashboard';
-        closeAuthPage();
-      }
-    } else {
-      // User is signed out
-      console.log('User is signed out');
-      
-      // Show auth links
-      authLinks.forEach(link => {
-        link.style.display = 'inline-block';
-      });
-      
-      // Hide user menu
-      if (userMenu) {
-        userMenu.style.display = 'none';
-      }
-      
-      // Show welcome popup for new visitors after a delay
-      setTimeout(() => {
-        showWelcomePopup();
-      }, 3000);
+    } catch (error) {
+      console.error('Firebase initialization error:', error);
+      alert('Firebase initialization error: ' + error.message);
     }
-  });
+  } else {
+    console.error('Firebase SDK not loaded');
+    alert('Firebase SDK not loaded. Please check your internet connection and try again.');
+  }
   
-  // Add sign out button event listeners
-  document.querySelectorAll('.logout-button').forEach(button => {
-    button.addEventListener('click', signOut);
-  });
+  // Show welcome popup after a small delay
+  setTimeout(showWelcomePopup, 2000);
 });
 
 // Function to load authentication page
@@ -364,14 +382,8 @@ function handleLogin(e) {
 }
 
 // Handle signup form submission
-function handleSignup(event) {
-  event.preventDefault();
-  
-  // Check if Firebase is initialized
-  if (!firebase.apps.length) {
-    showErrorMessage("Firebase initialization failed. Please try again later.");
-    return;
-  }
+function handleSignup(e) {
+  e.preventDefault();
   
   if (typeof firebase === 'undefined') {
     console.error('Firebase not initialized');
@@ -379,7 +391,7 @@ function handleSignup(event) {
   }
   
   // Get the form directly
-  const form = event.target;
+  const form = e.target;
   
   // Get form values directly from the form elements
   const name = form.querySelector('#name').value.trim();
@@ -443,53 +455,49 @@ function handleSignup(event) {
     return;
   }
   
-  // If validation passes, create user
+  // Firebase authentication - create new user
   firebase.auth().createUserWithEmailAndPassword(email, password)
     .then((userCredential) => {
-      // Set user display name
-      return userCredential.user.updateProfile({
+      // Successfully signed up
+      console.log('Signup successful');
+      
+      // Update user profile with name
+      userCredential.user.updateProfile({
         displayName: name
       }).then(() => {
-        console.log("User profile updated successfully");
-        window.location.href = '#dashboard';
+        console.log('User profile updated');
+      }).catch((error) => {
+        console.error('Error updating user profile:', error);
       });
+      
+      window.location.hash = 'dashboard';
+      closeAuthPage();
     })
     .catch((error) => {
-      console.error("Firebase auth error:", error);
-      submitButton.innerHTML = originalButtonText;
-      submitButton.disabled = false;
+      // Handle specific Firebase auth errors with user-friendly messages
+      let errorMessage;
       
-      // Handle specific errors
       switch (error.code) {
         case 'auth/email-already-in-use':
-          showErrorMessage("This email is already registered. Please log in instead.");
+          errorMessage = 'This email is already registered';
           break;
         case 'auth/invalid-email':
-          showErrorMessage("Please enter a valid email address.");
+          errorMessage = 'Invalid email address format';
           break;
         case 'auth/weak-password':
-          showErrorMessage("Password should be at least 6 characters.");
-          break;
-        case 'auth/argument-error':
-        case 'auth/invalid-api-key':
-          showErrorMessage("Authentication service error. Please try again later.");
-          // Attempt to re-initialize Firebase
-          setTimeout(() => {
-            if (typeof firebaseConfig !== 'undefined') {
-              try {
-                firebase.initializeApp(firebaseConfig);
-              } catch (e) {
-                console.log("Re-initialization attempted");
-              }
-            }
-          }, 1000);
-          break;
-        case 'auth/network-request-failed':
-          showErrorMessage("Network error. Please check your internet connection.");
+          errorMessage = 'Password is too weak';
           break;
         default:
-          showErrorMessage("Signup failed: " + error.message);
+          errorMessage = error.message || 'Signup failed. Please try again';
       }
+      
+      errorElement.textContent = errorMessage;
+      errorElement.style.display = 'block';
+    })
+    .finally(() => {
+      // Reset button state
+      submitButton.textContent = originalButtonText;
+      submitButton.disabled = false;
     });
 }
 
@@ -836,28 +844,5 @@ function syncPeriodData(db, user) {
         }
       })
       .catch(error => console.error('Error retrieving period data:', error));
-  }
-}
-
-// Update user menu with user info
-function updateUserMenu(user) {
-  // Update dashboard link (nothing to do)
-  
-  // Update profile link
-  const profileLink = document.querySelector('.profile-link');
-  const userAvatar = profileLink.querySelector('.user-avatar');
-  const displayNameEl = profileLink.querySelector('.user-display-name');
-  
-  // Update user name
-  const displayName = user.displayName || 'User';
-  displayNameEl.textContent = displayName;
-  
-  // Update avatar
-  if (user.photoURL) {
-    userAvatar.src = user.photoURL;
-  } else {
-    // Use name initials for avatar via UI Avatars API
-    const initials = encodeURIComponent(displayName);
-    userAvatar.src = `https://ui-avatars.com/api/?name=${initials}&size=64&background=random`;
   }
 } 

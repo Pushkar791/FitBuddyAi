@@ -113,7 +113,10 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle">Resources <i class="fas fa-chevron-down"></i></a>
                         <ul class="dropdown-menu">
-                            <li><a href="#faq"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                            <li><a href="#"><i class="fas fa-book"></i> Health Articles</a></li>
+                            <li><a href="#"><i class="fas fa-video"></i> Tutorials</a></li>
+                            <li><a href="#"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                            <li><a href="#"><i class="fas fa-users"></i> Community</a></li>
                         </ul>
                     </li>
                     <li><a href="#contact">Contact</a></li>
@@ -130,18 +133,6 @@
                         <a href="#login" class="auth-link btn-login" onclick="loadAuthPage('login'); return false;">Login</a>
                         <a href="#signup" class="auth-link btn-signup" onclick="loadAuthPage('signup'); return false;">Sign Up</a>
                     </div>
-                    <div class="user-menu login-required" style="display: none;">
-                        <a href="#dashboard" class="dashboard-link">
-                            <i class="fas fa-chart-line"></i> Dashboard
-                        </a>
-                        <a href="#profile" class="profile-link">
-                            <img src="assets/default-avatar.svg" alt="Profile" class="user-avatar">
-                            <span class="user-display-name">User</span>
-                        </a>
-                        <button class="logout-button">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
-                    </div>
                 </div>
             </nav>
         </div>
@@ -156,7 +147,9 @@
                     <p>FitBuddy brings together mental health support, menstrual cycle tracking, emotion detection, and neuroacoustic therapy in one seamless platform to boost your overall wellbeing.</p>
                     <div class="hero-buttons">
                         <a href="#features" class="btn btn-primary">Explore Features</a>
-                        <a href="#contact" class="btn btn-secondary">Contact Us</a>
+                        <a href="#workout-recommendations" class="btn btn-secondary workout-cta">
+                            <i class="fas fa-dumbbell"></i> Get Workout Plan
+                        </a>
                     </div>
                     
                     <!-- Added Statistics Counter Section -->
@@ -1533,7 +1526,6 @@
                         <li><a href="#hand-gestures">Hand Gestures</a></li>
                         <li><a href="#air-piano">Air Piano</a></li>
                         <li><a href="#stress-games">Stress Games</a></li>
-                        <li><a href="#dashboard">Progress Dashboard</a></li>
                     </ul>
                 </div>
                 <div class="footer-social">
@@ -1577,43 +1569,35 @@
         <!-- Main chatbot is already loaded via the scripts in the header -->
     </div>
 
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    
-    <!-- Chart.js for data visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    
-    <!-- App Scripts -->
-    <script src="common.js"></script>
     <script src="app.js"></script>
+    <!-- Auth and React Integration Scripts -->
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-storage-compat.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCdV4-6kFNRQ5LVZ4Mgy8XXRUV79A_wDtk",
+        authDomain: "fitbuddy-829c8.firebaseapp.com",
+        projectId: "fitbuddy-829c8",
+        storageBucket: "fitbuddy-829c8.firebasestorage.app",
+        messagingSenderId: "96621796266",
+        appId: "1:96621796266:web:84b759a1e7feb5a830a9d3",
+        measurementId: "G-RJC2FJ46X7"
+      };
+      
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const analytics = firebase.analytics();
+    </script>
+    
     <script src="auth-handler.js"></script>
     <script src="profile.js"></script>
-    <script src="dashboard.js"></script>
     <script src="react-loader.js"></script>
-    
-    <!-- Initialize Firebase -->
-    <script>
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyA7YTkX-PsPs3InGTH9-SH7QIgNqjoKzq9",
-            authDomain: "fitbuddy-ca7f6.firebaseapp.com",
-            projectId: "fitbuddy-ca7f6",
-            storageBucket: "fitbuddy-ca7f6.appspot.com",
-            messagingSenderId: "771113556092",
-            appId: "1:771113556092:web:c6c10aeef19e1aa9a8e7bb"
-        };
-        
-        // Initialize Firebase with special credentials type
-        firebase.initializeApp(firebaseConfig);
-
-        // Set persistence to local to improve auth reliability
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-          .catch(function(error) {
-            console.error("Auth persistence error:", error);
-          });
-    </script>
+    <script src="src/index.js" type="module"></script>
 </body>
 </html> 
