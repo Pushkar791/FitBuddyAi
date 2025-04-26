@@ -118,6 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize modern navigation
     initModernNavigation();
+
+    // Initialize custom form controls
+    initCustomFormControls();
 });
 
 /**
@@ -5277,4 +5280,41 @@ function displayWorkoutResults(recommendation) {
     
     // Scroll to results
     workoutResults.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
+ * Initialize custom form controls for number inputs
+ */
+function initCustomFormControls() {
+    // Handle number input controls (increment/decrement buttons)
+    const numberControlButtons = document.querySelectorAll('.number-control-btn');
+    
+    numberControlButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const inputId = this.dataset.input;
+            const input = document.getElementById(inputId);
+            const isIncrement = this.classList.contains('increment');
+            
+            // Get min and max values from the input
+            const min = parseInt(input.getAttribute('min') || 0);
+            const max = parseInt(input.getAttribute('max') || 100);
+            
+            // Get current value
+            let currentValue = parseInt(input.value) || 0;
+            
+            // Increment or decrement
+            if (isIncrement && currentValue < max) {
+                currentValue++;
+            } else if (!isIncrement && currentValue > min) {
+                currentValue--;
+            }
+            
+            // Update input value
+            input.value = currentValue;
+            
+            // Trigger change event
+            const event = new Event('change', { bubbles: true });
+            input.dispatchEvent(event);
+        });
+    });
 }

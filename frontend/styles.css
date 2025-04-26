@@ -6536,3 +6536,241 @@ body, header, .feature-card, .workout-form-container,
         background: linear-gradient(135deg, rgba(45, 52, 71, 0.98), rgba(45, 45, 65, 0.98));
     }
 }
+
+/* Enhanced Form Elements */
+.form-group select,
+.form-group input[type="number"],
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #dfe1e5;
+    background-color: #fff;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.form-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.form-group select:focus,
+.form-group input[type="number"]:focus,
+.form-group input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+    font-size: 1rem;
+}
+
+/* Select dropdown hover effect */
+.form-group select:hover {
+    border-color: var(--primary-color);
+}
+
+/* Enhanced form group spacing */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Style for the fitness level select */
+.form-group select#fitnessLevel option {
+    padding: 10px;
+}
+
+/* Custom styles for number inputs */
+.form-group input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.form-group input[type="number"]::-webkit-outer-spin-button,
+.form-group input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Custom number stepper */
+.number-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.number-input-container input {
+    padding-right: 70px;
+}
+
+.number-controls {
+    position: absolute;
+    right: 5px;
+    display: flex;
+    flex-direction: column;
+    height: 80%;
+}
+
+.number-control-btn {
+    background: rgba(102, 126, 234, 0.1);
+    border: none;
+    color: var(--primary-color);
+    width: 26px;
+    height: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: background-color 0.2s ease;
+}
+
+.number-control-btn:hover {
+    background: rgba(102, 126, 234, 0.2);
+}
+
+.number-control-btn:active {
+    transform: scale(0.95);
+}
+
+.number-control-btn.increment {
+    border-radius: 0 4px 0 0;
+}
+
+.number-control-btn.decrement {
+    border-radius: 0 0 4px 0;
+}
+
+/* Toggle Switch Styles */
+.equipment-option {
+    margin-bottom: 15px;
+}
+
+.toggle-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.toggle-label {
+    font-weight: 500;
+    color: #333;
+    flex: 1;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e0e0e0;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary-color);
+}
+
+input:focus + .toggle-slider {
+    box-shadow: 0 0 1px var(--primary-color);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+/* Styles for the submit button */
+.form button[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form button[type="submit"] i {
+    margin-right: 8px;
+}
+
+/* Custom form enhancements */
+.workout-form-container {
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 30px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.workout-form-container h3 {
+    font-size: 1.6rem;
+    margin-bottom: 25px;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.workout-form-container h3:after {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    bottom: 0;
+    left: 0;
+    border-radius: 3px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .toggle-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .toggle-switch {
+        margin-top: 10px;
+    }
+}
