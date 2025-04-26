@@ -292,7 +292,7 @@ function loadScriptsSequentially(scripts, index, callback) {
 function initializeFirebase() {
     // Firebase configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyCdV4-6kFNRQ5LVZ4Mgy8XXRUV79A_wDtk",
+        apiKey: "AIzaSyCdV4-6kFNRQ5LVZ4Mgy8XXRUVcdq_wDtk",
         authDomain: "fitbuddy-829c8.firebaseapp.com",
         projectId: "fitbuddy-829c8",
         storageBucket: "fitbuddy-829c8.firebasestorage.app",
