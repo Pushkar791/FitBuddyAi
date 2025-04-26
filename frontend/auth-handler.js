@@ -78,96 +78,78 @@ const authComponents = {
   }
 };
 
-// Initialize Firebase when the DOM content is loaded
+// Initialize authentication on DOM content loaded
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if Firebase is loaded properly
-  if (typeof firebase !== 'undefined') {
-    console.log('Firebase SDK loaded');
-    
-    // Check if Firebase config has been properly set up
-    try {
-      const config = firebase.app().options;
-      
-      // Check if placeholder values are still being used
-      if (config.apiKey === "YOUR_API_KEY" || 
-          config.apiKey.includes("REPLACE_WITH") || 
-          config.projectId === "YOUR_PROJECT_ID" || 
-          config.projectId.includes("REPLACE_WITH")) {
-        
-        console.error('Firebase configuration contains placeholder values!');
-        alert('Firebase configuration error: You need to replace the placeholder values with your actual Firebase project details. Check the console for more information.');
-        
-        console.log('Follow these steps to set up Firebase:');
-        console.log('1. Go to https://console.firebase.google.com/');
-        console.log('2. Create a new project');
-        console.log('3. Add a web app to your project');
-        console.log('4. Copy the configuration values');
-        console.log('5. Replace the placeholder values in index.html');
-        
-        return;
-      }
-      
-      // Initialize authentication
-      const auth = firebase.auth();
-      
-      // Check if the page loaded with a hash
-      const hash = window.location.hash.substring(1);
-      if (hash === 'login') {
-        loadAuthPage('login');
-      } else if (hash === 'signup') {
-        loadAuthPage('signup');
-      }
-      
-      // Set up auth state listener
-      auth.onAuthStateChanged(function(user) {
-        // Get auth links and profile elements
-        const authLinks = document.querySelectorAll('.auth-link');
-        const profileMenuContainer = document.getElementById('profile-menu-container') || createProfileMenuContainer();
-        
-        if (user) {
-          // User is signed in
-          console.log('User is signed in:', user.email);
-          
-          // Hide auth links
-          authLinks.forEach(link => {
-            link.parentElement.style.display = 'none';
-          });
-          
-          // Show profile menu with user info
-          updateProfileMenu(user);
-          profileMenuContainer.style.display = 'block';
-          
-          // Sync user data when signed in
-          syncUserData(user);
-          
-          if (currentAuthPage) {
-            window.location.hash = 'dashboard';
-            closeAuthPage();
-          }
-        } else {
-          // User is signed out
-          console.log('User is signed out');
-          
-          // Show auth links
-          authLinks.forEach(link => {
-            link.parentElement.style.display = 'block';
-          });
-          
-          // Hide profile menu
-          profileMenuContainer.style.display = 'none';
-        }
-      });
-    } catch (error) {
-      console.error('Firebase initialization error:', error);
-      alert('Firebase initialization error: ' + error.message);
-    }
-  } else {
-    console.error('Firebase SDK not loaded');
-    alert('Firebase SDK not loaded. Please check your internet connection and try again.');
+  // Check if Firebase is available
+  if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined') {
+    console.error('Firebase authentication is not initialized');
+    return;
   }
   
-  // Show welcome popup after a small delay
-  setTimeout(showWelcomePopup, 2000);
+  // Get hash from URL
+  const hash = window.location.hash.substring(1);
+  
+  // Open auth page if the hash is login or signup
+  if (hash === 'login') {
+    loadAuthPage('login');
+  } else if (hash === 'signup') {
+    loadAuthPage('signup');
+  }
+  
+  // Set up auth state listener
+  firebase.auth().onAuthStateChanged(function(user) {
+    // Get auth links and profile elements
+    const authLinks = document.querySelectorAll('.auth-link');
+    const userMenu = document.querySelector('.user-menu');
+    
+    if (user) {
+      // User is signed in
+      console.log('User is signed in:', user.email);
+      
+      // Hide auth links
+      authLinks.forEach(link => {
+        link.style.display = 'none';
+      });
+      
+      // Show user menu
+      if (userMenu) {
+        userMenu.style.display = 'flex';
+        updateUserMenu(user);
+      }
+      
+      // Sync user data when signed in
+      syncUserData(user);
+      
+      // Close auth page if open
+      if (currentAuthPage) {
+        window.location.hash = 'dashboard';
+        closeAuthPage();
+      }
+    } else {
+      // User is signed out
+      console.log('User is signed out');
+      
+      // Show auth links
+      authLinks.forEach(link => {
+        link.style.display = 'inline-block';
+      });
+      
+      // Hide user menu
+      if (userMenu) {
+        userMenu.style.display = 'none';
+      }
+      
+      // Show welcome popup for new visitors after a delay
+      setTimeout(() => {
+        showWelcomePopup();
+      }, 3000);
+    }
+  });
+  
+  // Add sign out button event listeners
+  document.querySelectorAll('.logout-button').forEach(button => {
+    button.addEventListener('click', signOut);
+  });
 });
 
 // Function to load authentication page
@@ -844,5 +826,28 @@ function syncPeriodData(db, user) {
         }
       })
       .catch(error => console.error('Error retrieving period data:', error));
+  }
+}
+
+// Update user menu with user info
+function updateUserMenu(user) {
+  // Update dashboard link (nothing to do)
+  
+  // Update profile link
+  const profileLink = document.querySelector('.profile-link');
+  const userAvatar = profileLink.querySelector('.user-avatar');
+  const displayNameEl = profileLink.querySelector('.user-display-name');
+  
+  // Update user name
+  const displayName = user.displayName || 'User';
+  displayNameEl.textContent = displayName;
+  
+  // Update avatar
+  if (user.photoURL) {
+    userAvatar.src = user.photoURL;
+  } else {
+    // Use name initials for avatar via UI Avatars API
+    const initials = encodeURIComponent(displayName);
+    userAvatar.src = `https://ui-avatars.com/api/?name=${initials}&size=64&background=random`;
   }
 } 

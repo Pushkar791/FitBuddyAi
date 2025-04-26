@@ -89,16 +89,60 @@
                 <i class="fas fa-bars"></i>
             </button>
             <nav id="main-nav">
-                <ul>
+                <ul class="nav-main-menu">
                     <li><a href="#home" class="active">Home</a></li>
-                    <li><a href="#she-sync">Period Tracker</a></li>
-                    <li><a href="#emotional-wellness">Emotion Tracker</a></li>
-                    <li><a href="#neuroacoustic">Sound Therapy</a></li>
-                    <li><a href="#stress-games">Stress Relief</a></li>
+                    <li class="dropdown">
+                        <a href="#features" class="dropdown-toggle">Features <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#she-sync"><i class="fas fa-calendar-alt"></i> Period Tracker</a></li>
+                            <li><a href="#emotional-wellness"><i class="fas fa-smile"></i> Emotion Tracker</a></li>
+                            <li><a href="#neuroacoustic"><i class="fas fa-headphones"></i> Sound Therapy</a></li>
+                            <li><a href="#stress-games"><i class="fas fa-gamepad"></i> Stress Relief</a></li>
+                            <li><a href="#workout-recommendations"><i class="fas fa-dumbbell"></i> Workout Plans</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Health Tools <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#workout-recommendations"><i class="fas fa-running"></i> Fitness Planner</a></li>
+                            <li><a href="#hand-gestures"><i class="fas fa-hand-paper"></i> Hand Gestures</a></li>
+                            <li><a href="#she-sync"><i class="fas fa-venus"></i> Women's Health</a></li>
+                            <li><a href="#neuroacoustic"><i class="fas fa-brain"></i> Mental Wellness</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Resources <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#faq"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                        </ul>
+                    </li>
                     <li><a href="#contact">Contact</a></li>
-                    <li><a href="#login" class="auth-link" onclick="loadAuthPage('login'); return false;">Login</a></li>
-                    <li><a href="#signup" class="auth-link" onclick="loadAuthPage('signup'); return false;">Sign Up</a></li>
                 </ul>
+                <div class="nav-right">
+                    <div class="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    <div class="notification-icon">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">2</span>
+                    </div>
+                    <div class="auth-buttons">
+                        <a href="#login" class="auth-link btn-login" onclick="loadAuthPage('login'); return false;">Login</a>
+                        <a href="#signup" class="auth-link btn-signup" onclick="loadAuthPage('signup'); return false;">Sign Up</a>
+                    </div>
+                    <div class="user-menu login-required" style="display: none;">
+                        <a href="#dashboard" class="dashboard-link">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                        <a href="#profile" class="profile-link">
+                            <img src="assets/default-avatar.svg" alt="Profile" class="user-avatar">
+                            <span class="user-display-name">User</span>
+                        </a>
+                        <button class="logout-button">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
             </nav>
         </div>
     </header>
@@ -199,7 +243,19 @@
                         <h3>Hand Gesture Controls</h3>
                         <p>Control the app with intuitive hand gestures for a touch-free experience. Perfect for meditation and therapy sessions.</p>
                         <div class="feature-image">
-                            <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Hand Gesture Controls">
+                            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Hand Gesture Controls">
+                        </div>
+                    </a>
+                </div>
+                <div class="feature-card fade-in">
+                    <a href="#workout-recommendations" class="feature-link">
+                        <div class="feature-icon">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <h3>AI Workout Recommendations</h3>
+                        <p>Get personalized workout plans based on your fitness level, goals, and preferences using our machine learning algorithm.</p>
+                        <div class="feature-image">
+                            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Workout Recommendations">
                         </div>
                     </a>
                 </div>
@@ -218,6 +274,142 @@
             </div>
         </div>
     </section>
+
+    <!-- Workout Recommendations Section -->
+    <section id="workout-recommendations" class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Personalized <span class="gradient-text">Workout Recommendations</span></h2>
+                <p>Get customized workout plans based on your fitness level, goals, and preferences</p>
+            </div>
+            
+            <div class="workout-container">
+                <div class="workout-form-container fade-in">
+                    <h3>Find Your Perfect Workout</h3>
+                    <form id="workout-form" class="form">
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" name="age" min="18" max="100" value="30" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" required>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fitnessLevel">Fitness Level (1-5)</label>
+                            <select id="fitnessLevel" name="fitnessLevel" required>
+                                <option value="1">1 - Beginner</option>
+                                <option value="2">2 - Novice</option>
+                                <option value="3" selected>3 - Intermediate</option>
+                                <option value="4">4 - Advanced</option>
+                                <option value="5">5 - Expert</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="goal">Fitness Goal</label>
+                            <select id="goal" name="goal" required>
+                                <option value="weight_loss">Weight Loss</option>
+                                <option value="muscle_gain">Muscle Gain</option>
+                                <option value="general_fitness" selected>General Fitness</option>
+                                <option value="endurance">Endurance</option>
+                                <option value="flexibility">Flexibility</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="timeAvailable">Time Available (minutes)</label>
+                            <input type="number" id="timeAvailable" name="timeAvailable" min="10" max="120" value="30" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="experienceYears">Years of Experience</label>
+                            <input type="number" id="experienceYears" name="experienceYears" min="0" max="50" value="1" required>
+                        </div>
+                        
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="hasEquipment" name="hasEquipment">
+                                <span class="checkmark"></span>
+                                I have access to gym equipment
+                            </label>
+                        </div>
+                        
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="hasHealthCondition" name="hasHealthCondition">
+                                <span class="checkmark"></span>
+                                I have health conditions affecting exercise
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Get Workout Plan</button>
+                    </form>
+                </div>
+                
+                <div class="workout-results-container fade-in">
+                    <div id="workout-results" class="hidden">
+                        <div class="workout-header">
+                            <h3>Your Personalized Workout Plan</h3>
+                            <div class="recommendation-type">
+                                <i class="fas fa-dumbbell"></i>
+                                <span id="workout-type">Strength Training</span>
+                            </div>
+                            <div class="confidence-meter">
+                                <div class="meter-label">AI Confidence:</div>
+                                <div class="meter">
+                                    <div id="confidence-bar" class="meter-bar" style="width: 85%"></div>
+                                </div>
+                                <div id="confidence-percentage">85%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="workout-details">
+                            <div class="detail-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Duration:</span>
+                                <span id="workout-duration">45 minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-fire"></i>
+                                <span>Intensity:</span>
+                                <span id="workout-intensity">Moderate</span>
+                            </div>
+                        </div>
+                        
+                        <div class="exercises-container">
+                            <h4>Exercises</h4>
+                            <div id="exercises-list" class="exercises-list">
+                                <!-- Exercises will be dynamically added here -->
+                            </div>
+                        </div>
+                        
+                        <div class="workout-actions">
+                            <button id="save-workout" class="btn btn-secondary">
+                                <i class="fas fa-save"></i> Save Plan
+                            </button>
+                            <button id="share-workout" class="btn btn-secondary">
+                                <i class="fas fa-share-alt"></i> Share
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="workout-placeholder" class="placeholder-container">
+                        <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80" alt="Workout" class="placeholder-image">
+                        <p>Fill out the form to get your personalized workout recommendations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
 
     <!-- SHE SYNC Section (Period Tracking) -->
     <section id="she-sync" class="section she-sync">
@@ -1341,6 +1533,7 @@
                         <li><a href="#hand-gestures">Hand Gestures</a></li>
                         <li><a href="#air-piano">Air Piano</a></li>
                         <li><a href="#stress-games">Stress Games</a></li>
+                        <li><a href="#dashboard">Progress Dashboard</a></li>
                     </ul>
                 </div>
                 <div class="footer-social">
@@ -1384,35 +1577,37 @@
         <!-- Main chatbot is already loaded via the scripts in the header -->
     </div>
 
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="common.js"></script>
     <script src="app.js"></script>
-    <!-- Auth and React Integration Scripts -->
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-analytics-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-storage-compat.js"></script>
-    <script>
-      // Your web app's Firebase configuration
-      const firebaseConfig = {
-        apiKey: "AIzaSyCdV4-6kFNRQ5LVZ4Mgy8XXRUV79A_wDtk",
-        authDomain: "fitbuddy-829c8.firebaseapp.com",
-        projectId: "fitbuddy-829c8",
-        storageBucket: "fitbuddy-829c8.firebasestorage.app",
-        messagingSenderId: "96621796266",
-        appId: "1:96621796266:web:84b759a1e7feb5a830a9d3",
-        measurementId: "G-RJC2FJ46X7"
-      };
-      
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      const analytics = firebase.analytics();
-    </script>
-    
     <script src="auth-handler.js"></script>
     <script src="profile.js"></script>
+    <script src="dashboard.js"></script>
     <script src="react-loader.js"></script>
-    <script src="src/index.js" type="module"></script>
+    
+    <!-- Initialize Firebase -->
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7YTkX-PsPs3InGTH9-SH7QIgNqjoKzq9",
+            authDomain: "fitbuddy-ca7f6.firebaseapp.com",
+            projectId: "fitbuddy-ca7f6",
+            storageBucket: "fitbuddy-ca7f6.appspot.com",
+            messagingSenderId: "771113556092",
+            appId: "1:771113556092:web:c6c10aeef19e1aa9a8e7bb"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
 </body>
 </html> 

@@ -87,7 +87,144 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // New initializations
     initStatisticsCounters();
+    
+    // Workout Recommendation System
+    const workoutForm = document.getElementById('workout-form');
+    const workoutResults = document.getElementById('workout-results');
+    const workoutPlaceholder = document.getElementById('workout-placeholder');
+    
+    if (workoutForm) {
+        workoutForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitWorkoutForm();
+        });
+    }
+    
+    // Initialize save and share buttons
+    const saveWorkoutBtn = document.getElementById('save-workout');
+    const shareWorkoutBtn = document.getElementById('share-workout');
+    
+    if (saveWorkoutBtn) {
+        saveWorkoutBtn.addEventListener('click', function() {
+            alert('Workout plan saved! You can access it from your profile.');
+        });
+    }
+    
+    if (shareWorkoutBtn) {
+        shareWorkoutBtn.addEventListener('click', function() {
+            alert('Share functionality coming soon!');
+        });
+    }
+
+    // Initialize modern navigation
+    initModernNavigation();
 });
+
+/**
+ * Initialize modern navigation with dropdowns and theme toggle
+ */
+function initModernNavigation() {
+    // Get navigation elements
+    const navLinks = document.querySelectorAll('nav a, .nav-link, .cta-button');
+    
+    // Add click event to navigation links
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            // Only handle internal links
+            if (link.getAttribute('href').startsWith('#')) {
+                e.preventDefault();
+                
+                // Get the target section ID
+                const targetId = link.getAttribute('href').substring(1);
+                
+                // Check if target is a special route
+                if (['login', 'signup', 'profile', 'dashboard'].includes(targetId)) {
+                    // Update hash for route handling
+                    window.location.hash = targetId;
+                    return;
+                }
+                
+                // Get the target section
+                const targetSection = document.getElementById(targetId);
+                
+                // Scroll to the section if it exists
+                if (targetSection) {
+                    // First hide any specialized sections
+                    document.querySelectorAll('.profile-page, .dashboard-container').forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    
+                    // Show all regular sections again
+                    document.querySelectorAll('section').forEach(section => {
+                        section.style.display = 'block';
+                    });
+                    
+                    // Scroll to the target section
+                    window.scrollTo({
+                        top: targetSection.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Update active state in navigation
+                    navLinks.forEach(navLink => navLink.classList.remove('active'));
+                    link.classList.add('active');
+                    
+                    // Close mobile menu if open
+                    const mobileMenu = document.querySelector('.mobile-menu-container');
+                    if (mobileMenu && mobileMenu.classList.contains('active')) {
+                        mobileMenu.classList.remove('active');
+                        document.body.classList.remove('menu-open');
+                    }
+                }
+            }
+        });
+    });
+    
+    // Handle hash changes for routes
+    window.addEventListener('hashchange', handleRouteChange);
+    
+    // Check initial hash on page load
+    handleRouteChange();
+}
+
+// Handle route changes
+function handleRouteChange() {
+    const hash = window.location.hash.substring(1);
+    
+    if (['login', 'signup', 'profile', 'dashboard'].includes(hash)) {
+        // Hide all sections
+        document.querySelectorAll('section').forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Hide any other specialized containers to avoid conflicts
+        if (hash !== 'profile') {
+            const profileContainer = document.getElementById('profile-container');
+            if (profileContainer) profileContainer.style.display = 'none';
+        }
+        
+        if (hash !== 'dashboard') {
+            const dashboardContainer = document.getElementById('dashboard-container');
+            if (dashboardContainer) dashboardContainer.style.display = 'none';
+        }
+        
+        // Show navigation UI
+        document.querySelector('header').style.display = 'block';
+        document.querySelector('footer').style.display = 'block';
+    } else {
+        // For regular sections, show all sections
+        document.querySelectorAll('section').forEach(section => {
+            section.style.display = 'block';
+        });
+        
+        // Hide specialized containers
+        const profileContainer = document.getElementById('profile-container');
+        if (profileContainer) profileContainer.style.display = 'none';
+        
+        const dashboardContainer = document.getElementById('dashboard-container');
+        if (dashboardContainer) dashboardContainer.style.display = 'none';
+    }
+}
 
 // Initialize API connections
 function initAPIConnections() {
@@ -234,30 +371,56 @@ function initFadeInElements() {
 
 // Initialize mobile menu
 function initMobileMenu() {
-    const menuToggle = document.getElementById('mobile-menu-toggle');
-    const mainNav = document.getElementById('main-nav');
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const nav = document.getElementById('main-nav');
     
-    if (menuToggle && mainNav) {
-        menuToggle.addEventListener('click', () => {
-            mainNav.classList.toggle('open');
-            const isOpen = mainNav.classList.contains('open');
-            menuToggle.innerHTML = isOpen ? 
-                '<i class="fas fa-times"></i>' : 
-                '<i class="fas fa-bars"></i>';
+    if (mobileMenuToggle && nav) {
+        mobileMenuToggle.addEventListener('click', function() {
+            nav.classList.toggle('open');
+            this.classList.toggle('active');
+            
+            // Update icon
+            const icon = this.querySelector('i');
+            if (nav.classList.contains('open')) {
+                icon.classList.replace('fa-bars', 'fa-times');
+            } else {
+                icon.classList.replace('fa-times', 'fa-bars');
+            }
+            
+            // Close all dropdowns when closing mobile menu
+            if (!nav.classList.contains('open')) {
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    menu.style.height = '0';
+                    menu.style.padding = '0';
+                });
+                
+                document.querySelectorAll('.dropdown-toggle i').forEach(icon => {
+                    icon.style.transform = 'rotate(0)';
+                });
+            }
         });
         
-        // Close menu when a link is clicked
-        const navLinks = mainNav.querySelectorAll('a');
+        // Close menu when a link is clicked (except dropdown toggles in mobile)
+        const navLinks = nav.querySelectorAll('a:not(.dropdown-toggle)');
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
-                mainNav.classList.remove('open');
-                menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                if (window.innerWidth <= 768) {
+                    nav.classList.remove('open');
+                    mobileMenuToggle.classList.remove('active');
+                    mobileMenuToggle.querySelector('i').classList.replace('fa-times', 'fa-bars');
+                    
+                    // Close all dropdowns
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.style.height = '0';
+                        menu.style.padding = '0';
+                    });
+                    
+                    document.querySelectorAll('.dropdown-toggle i').forEach(icon => {
+                        icon.style.transform = 'rotate(0)';
+                    });
+                }
             });
         });
-        
-        console.log("Mobile menu initialized");
-    } else {
-        console.warn("Mobile menu elements not found");
     }
 }
 
@@ -5031,4 +5194,116 @@ function loadSavedPeriodData() {
         .catch(error => {
             console.error("Error loading period data:", error);
         });
+}
+
+/**
+ * Submit the workout form to get personalized recommendations
+ */
+function submitWorkoutForm() {
+    const workoutForm = document.getElementById('workout-form');
+    const workoutResults = document.getElementById('workout-results');
+    const workoutPlaceholder = document.getElementById('workout-placeholder');
+    
+    // Show loading state
+    workoutPlaceholder.innerHTML = `
+        <div class="loading-spinner"></div>
+        <p>Analyzing your data and generating recommendations...</p>
+    `;
+    
+    // Get form data
+    const formData = {
+        age: parseInt(document.getElementById('age').value),
+        gender: document.getElementById('gender').value,
+        fitnessLevel: parseInt(document.getElementById('fitnessLevel').value),
+        goal: document.getElementById('goal').value,
+        timeAvailable: parseInt(document.getElementById('timeAvailable').value),
+        experienceYears: parseInt(document.getElementById('experienceYears').value),
+        hasEquipment: document.getElementById('hasEquipment').checked,
+        hasHealthCondition: document.getElementById('hasHealthCondition').checked
+    };
+    
+    // Send API request
+    fetch('/api/workout/recommend', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayWorkoutResults(data.recommendation);
+        } else {
+            console.error('Error getting recommendations:', data.error);
+            alert('Sorry, we encountered an error. Please try again.');
+            workoutPlaceholder.innerHTML = `
+                <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80" alt="Workout" class="placeholder-image">
+                <p>Fill out the form to get your personalized workout recommendations</p>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alert('Network error. Please check your connection and try again.');
+        workoutPlaceholder.innerHTML = `
+            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80" alt="Workout" class="placeholder-image">
+            <p>Fill out the form to get your personalized workout recommendations</p>
+        `;
+    });
+}
+
+/**
+ * Display the workout recommendations in the UI
+ */
+function displayWorkoutResults(recommendation) {
+    const workoutResults = document.getElementById('workout-results');
+    const workoutPlaceholder = document.getElementById('workout-placeholder');
+    const exercisesList = document.getElementById('exercises-list');
+    
+    // Set workout type
+    document.getElementById('workout-type').textContent = recommendation.recommendation;
+    
+    // Set confidence meter
+    const confidenceBar = document.getElementById('confidence-bar');
+    const confidencePercentage = document.getElementById('confidence-percentage');
+    confidenceBar.style.width = `${recommendation.confidence}%`;
+    confidencePercentage.textContent = `${recommendation.confidence}%`;
+    
+    // Set workout details
+    document.getElementById('workout-duration').textContent = `${recommendation.details.duration} minutes`;
+    document.getElementById('workout-intensity').textContent = recommendation.details.intensity.charAt(0).toUpperCase() + 
+                                                              recommendation.details.intensity.slice(1);
+    
+    // Clear previous exercises
+    exercisesList.innerHTML = '';
+    
+    // Add exercises
+    recommendation.details.exercises.forEach(exercise => {
+        const exerciseItem = document.createElement('div');
+        exerciseItem.className = 'exercise-item';
+        
+        exerciseItem.innerHTML = `
+            <div class="exercise-name">${exercise.name}</div>
+            <div class="exercise-sets">
+                <div class="exercise-label">Sets</div>
+                <div>${exercise.sets}</div>
+            </div>
+            <div class="exercise-reps">
+                <div class="exercise-label">Reps</div>
+                <div>${exercise.reps}</div>
+                <div class="exercise-label">Rest</div>
+                <div>${exercise.rest}</div>
+            </div>
+        `;
+        
+        exercisesList.appendChild(exerciseItem);
+    });
+    
+    // Show results, hide placeholder
+    workoutResults.classList.remove('hidden');
+    workoutPlaceholder.classList.add('hidden');
+    
+    // Scroll to results
+    workoutResults.scrollIntoView({ behavior: 'smooth' });
 }

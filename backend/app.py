@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
 import json
@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import base64
 from emotion_detector import EmotionDetector
+from workout_recommender import WorkoutRecommender
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -18,6 +19,9 @@ CORS(app)  # Enable CORS for all routes
 
 # Initialize the emotion detector
 emotion_detector = EmotionDetector()
+
+# Initialize the workout recommender
+workout_recommender = WorkoutRecommender()
 
 # Database configuration
 DB_CONFIG = {
@@ -368,7 +372,64 @@ def calculate_cycle():
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    return jsonify({"status": "healthy", "mode": "demo" if DEMO_MODE else "database"})
+    """Basic health check endpoint"""
+    return jsonify({"status": "ok", "timestamp": datetime.now().isoformat()})
+
+# Workout Recommendation Endpoints
+@app.route('/api/workout/recommend', methods=['POST'])
+def recommend_workout():
+    """Get workout recommendations based on user data"""
+    try:
+        user_data = request.json
+        
+        # Process input data
+        processed_data = {
+            'age': user_data.get('age', 30),
+            'gender_encoded': {'male': 0, 'female': 1, 'other': 2}.get(user_data.get('gender', 'male'), 0),
+            'fitness_level': user_data.get('fitnessLevel', 3),
+            'goal_encoded': {
+                'weight_loss': 0, 
+                'muscle_gain': 1, 
+                'general_fitness': 2, 
+                'endurance': 3, 
+                'flexibility': 4
+            }.get(user_data.get('goal', 'general_fitness'), 2),
+            'time_available': user_data.get('timeAvailable', 30),
+            'experience_years': user_data.get('experienceYears', 1),
+            'has_equipment': 1 if user_data.get('hasEquipment', False) else 0,
+            'has_health_condition': 1 if user_data.get('hasHealthCondition', False) else 0
+        }
+        
+        # Get recommendation
+        recommendation = workout_recommender.recommend_workout(processed_data)
+        
+        return jsonify({
+            "success": True,
+            "recommendation": recommendation
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in workout recommendation: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+@app.route('/api/workout/types', methods=['GET'])
+def get_workout_types():
+    """Get available workout types"""
+    try:
+        workout_types = workout_recommender.get_workout_types()
+        return jsonify({
+            "success": True,
+            "workout_types": workout_types
+        })
+    except Exception as e:
+        logger.error(f"Error getting workout types: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
 
 if __name__ == '__main__':
     # Initialize database on startup
