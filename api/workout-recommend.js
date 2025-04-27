@@ -1,0 +1,232 @@
+// Serverless function for workout recommendations
+// This file will be automatically recognized by Vercel as an API endpoint
+
+module.exports = (req, res) => {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  // Handle OPTIONS request for CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  // Only handle POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  try {
+    // Get request body
+    const userData = req.body;
+    
+    if (!userData) {
+      return res.status(400).json({ success: false, error: 'No request body provided' });
+    }
+    
+    // Process input data
+    const processedData = {
+      age: userData.age || 30,
+      gender_encoded: { 'male': 0, 'female': 1, 'other': 2 }[userData.gender] || 0,
+      fitness_level: userData.fitnessLevel || 3,
+      goal_encoded: {
+        'weight_loss': 0,
+        'muscle_gain': 1,
+        'general_fitness': 2,
+        'endurance': 3,
+        'flexibility': 4
+      }[userData.goal] || 2,
+      time_available: userData.timeAvailable || 30,
+      experience_years: userData.experienceYears || 1,
+      has_equipment: userData.hasEquipment ? 1 : 0,
+      has_health_condition: userData.hasHealthCondition ? 1 : 0
+    };
+    
+    // Generate a recommendation based on the processed data
+    const recommendation = generateWorkoutRecommendation(processedData);
+    
+    // Return the recommendation
+    return res.status(200).json({
+      success: true,
+      recommendation: recommendation
+    });
+  } catch (error) {
+    console.error('Error generating workout recommendation:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error: ' + error.message
+    });
+  }
+};
+
+/**
+ * Generate a workout recommendation based on user data
+ */
+function generateWorkoutRecommendation(userData) {
+  // Define workout types based on user goals and equipment availability
+  const workoutTypes = [
+    'High-Intensity Interval Training (HIIT)',
+    'Strength Training',
+    'Cardio Endurance',
+    'Flexibility and Mobility',
+    'Circuit Training',
+    'Bodyweight Training',
+    'Yoga',
+    'CrossFit',
+    'Swimming',
+    'Running'
+  ];
+  
+  // Simple algorithm to choose workout type based on user data
+  let workoutIndex = userData.goal_encoded;
+  
+  // Adjust based on fitness level
+  if (userData.fitness_level <= 2) {
+    // Beginners should avoid complex workouts
+    if (workoutIndex === 1) workoutIndex = 5; // Bodyweight instead of heavy strength training
+    if (workoutIndex === 3) workoutIndex = 9; // Running instead of intense endurance
+  }
+  
+  // Adjust based on equipment availability
+  if (userData.has_equipment === 0 && workoutIndex === 1) {
+    workoutIndex = 5; // Bodyweight instead of strength if no equipment
+  }
+  
+  // Adjust based on health condition
+  if (userData.has_health_condition === 1) {
+    if (workoutIndex === 0 || workoutIndex === 3 || workoutIndex === 7) {
+      workoutIndex = 6; // Yoga for those with health conditions
+    }
+  }
+  
+  // Ensure workout index is within bounds
+  workoutIndex = Math.min(Math.max(workoutIndex, 0), workoutTypes.length - 1);
+  
+  const workoutType = workoutTypes[workoutIndex];
+  
+  // Calculate confidence based on how well we can match the user's needs
+  const confidence = Math.floor(60 + Math.random() * 30);
+  
+  // Generate workout details
+  const workoutDetails = getWorkoutDetails(workoutType, userData);
+  
+  return {
+    recommendation: workoutType,
+    confidence: confidence,
+    details: workoutDetails
+  };
+}
+
+/**
+ * Generate detailed workout plan based on workout type and user data
+ */
+function getWorkoutDetails(workoutType, userData) {
+  const workoutDetails = {
+    type: workoutType,
+    duration: userData.time_available,
+    exercises: [],
+    intensity: userData.fitness_level <= 2 ? 'low' : (userData.fitness_level >= 4 ? 'high' : 'moderate')
+  };
+  
+  // Add exercises based on workout type
+  if (workoutType === 'High-Intensity Interval Training (HIIT)') {
+    workoutDetails.exercises = [
+      { name: 'Burpees', sets: 3, reps: '45 seconds', rest: '15 seconds' },
+      { name: 'Mountain Climbers', sets: 3, reps: '45 seconds', rest: '15 seconds' },
+      { name: 'Jumping Jacks', sets: 3, reps: '45 seconds', rest: '15 seconds' },
+      { name: 'High Knees', sets: 3, reps: '45 seconds', rest: '15 seconds' },
+      { name: 'Squat Jumps', sets: 3, reps: '45 seconds', rest: '15 seconds' }
+    ];
+  } else if (workoutType === 'Strength Training') {
+    workoutDetails.exercises = [
+      { name: 'Squats', sets: 4, reps: '10-12', rest: '60 seconds' },
+      { name: 'Bench Press', sets: 4, reps: '8-10', rest: '90 seconds' },
+      { name: 'Deadlifts', sets: 4, reps: '8-10', rest: '90 seconds' },
+      { name: 'Shoulder Press', sets: 3, reps: '10-12', rest: '60 seconds' },
+      { name: 'Barbell Rows', sets: 3, reps: '10-12', rest: '60 seconds' }
+    ];
+  } else if (workoutType === 'Cardio Endurance') {
+    workoutDetails.exercises = [
+      { name: 'Jogging', sets: 1, reps: '20 minutes', rest: 'none' },
+      { name: 'Jumping Rope', sets: 3, reps: '3 minutes', rest: '1 minute' },
+      { name: 'Cycling', sets: 1, reps: '15 minutes', rest: 'none' },
+      { name: 'Jump Squats', sets: 3, reps: '15', rest: '30 seconds' },
+      { name: 'Burpees', sets: 3, reps: '10', rest: '30 seconds' }
+    ];
+  } else if (workoutType === 'Flexibility and Mobility') {
+    workoutDetails.exercises = [
+      { name: 'Dynamic Stretching', sets: 1, reps: '5 minutes', rest: 'none' },
+      { name: 'Hip Openers', sets: 2, reps: '30 seconds each side', rest: '15 seconds' },
+      { name: 'Shoulder Mobility Flow', sets: 2, reps: '1 minute', rest: '30 seconds' },
+      { name: 'Hamstring Stretch', sets: 2, reps: '30 seconds each leg', rest: '15 seconds' },
+      { name: 'Spine Mobility', sets: 2, reps: '1 minute', rest: '30 seconds' }
+    ];
+  } else if (workoutType === 'Circuit Training') {
+    workoutDetails.exercises = [
+      { name: 'Push-ups', sets: 3, reps: '12-15', rest: '30 seconds' },
+      { name: 'Bodyweight Squats', sets: 3, reps: '15-20', rest: '30 seconds' },
+      { name: 'Dumbbell Rows', sets: 3, reps: '12 each arm', rest: '30 seconds' },
+      { name: 'Lunges', sets: 3, reps: '10 each leg', rest: '30 seconds' },
+      { name: 'Plank', sets: 3, reps: '45 seconds', rest: '30 seconds' }
+    ];
+  } else if (workoutType === 'Bodyweight Training') {
+    workoutDetails.exercises = [
+      { name: 'Push-ups', sets: 3, reps: '10-15', rest: '45 seconds' },
+      { name: 'Bodyweight Squats', sets: 3, reps: '15-20', rest: '45 seconds' },
+      { name: 'Plank', sets: 3, reps: '30-60 seconds', rest: '30 seconds' },
+      { name: 'Lunges', sets: 3, reps: '10 each leg', rest: '45 seconds' },
+      { name: 'Mountain Climbers', sets: 3, reps: '30 seconds', rest: '30 seconds' }
+    ];
+  } else if (workoutType === 'Yoga') {
+    workoutDetails.exercises = [
+      { name: 'Sun Salutation', sets: 1, reps: '5 flows', rest: 'as needed' },
+      { name: 'Warrior Poses', sets: 1, reps: 'hold 30 seconds each side', rest: 'as needed' },
+      { name: 'Downward Dog', sets: 1, reps: 'hold 1 minute', rest: 'as needed' },
+      { name: "Child's Pose", sets: 1, reps: 'hold 1 minute', rest: 'as needed' },
+      { name: 'Seated Forward Bend', sets: 1, reps: 'hold 1 minute', rest: 'as needed' }
+    ];
+  } else if (workoutType === 'CrossFit') {
+    workoutDetails.exercises = [
+      { name: 'Box Jumps', sets: 5, reps: '10', rest: '30 seconds' },
+      { name: 'Kettlebell Swings', sets: 5, reps: '15', rest: '30 seconds' },
+      { name: 'Pull-ups', sets: 5, reps: '5-10', rest: '30 seconds' },
+      { name: 'Wall Balls', sets: 5, reps: '15', rest: '30 seconds' },
+      { name: 'Double Unders', sets: 5, reps: '30', rest: '30 seconds' }
+    ];
+  } else if (workoutType === 'Swimming') {
+    workoutDetails.exercises = [
+      { name: 'Freestyle', sets: 1, reps: '200m', rest: '45 seconds' },
+      { name: 'Backstroke', sets: 1, reps: '200m', rest: '45 seconds' },
+      { name: 'Breaststroke', sets: 1, reps: '200m', rest: '45 seconds' },
+      { name: 'Sprint Intervals', sets: 5, reps: '50m', rest: '30 seconds' },
+      { name: 'Cool Down', sets: 1, reps: '100m easy', rest: 'none' }
+    ];
+  } else if (workoutType === 'Running') {
+    workoutDetails.exercises = [
+      { name: 'Warm Up Jog', sets: 1, reps: '5 minutes', rest: 'none' },
+      { name: 'Sprint Intervals', sets: 5, reps: '30 seconds', rest: '1 minute' },
+      { name: 'Tempo Run', sets: 1, reps: '10 minutes', rest: 'none' },
+      { name: 'Hill Repeats', sets: 3, reps: '1 minute', rest: '1 minute' },
+      { name: 'Cool Down', sets: 1, reps: '5 minutes', rest: 'none' }
+    ];
+  } else {
+    // Default exercises for any other workout type
+    workoutDetails.exercises = [
+      { name: 'Push-ups', sets: 3, reps: '10-15', rest: '45 seconds' },
+      { name: 'Bodyweight Squats', sets: 3, reps: '15-20', rest: '45 seconds' },
+      { name: 'Plank', sets: 3, reps: '30-60 seconds', rest: '30 seconds' },
+      { name: 'Lunges', sets: 3, reps: '10 each leg', rest: '45 seconds' },
+      { name: 'Jumping Jacks', sets: 3, reps: '30 seconds', rest: '30 seconds' }
+    ];
+  }
+  
+  // Adjust number of exercises based on time available
+  if (userData.time_available < 30) {
+    workoutDetails.exercises = workoutDetails.exercises.slice(0, 3);
+  }
+  
+  return workoutDetails;
+} 

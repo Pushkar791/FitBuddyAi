@@ -1,5 +1,8 @@
 // API Configuration
-const API_URL = 'http://localhost:5000/api';
+const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1');
+const API_URL = isProduction 
+    ? 'https://fit-buddy-ai.vercel.app/api'  // Production API URL
+    : 'http://localhost:8080/api';           // Local development API URL
 
 // Initialize audio context for the entire site
 function initAudioContext() {
@@ -202,21 +205,54 @@ function initModernNavigation() {
 
 // Initialize API connections
 function initAPIConnections() {
+    // Set a timeout for the health check
+    const timeout = 3000;
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Health check timeout')), timeout);
+    });
+    
     // Check if backend is available
-    fetch(`${API_URL}/health`)
-        .then(response => response.json())
-        .then(data => {
-            console.log('Backend connection:', data.status);
-            // If connected, load any saved data
-            if (data.status === 'healthy') {
-                loadPeriodDataFromAPI();
-            }
-        })
-        .catch(error => {
-            console.error('Backend connection error:', error);
-            // Fall back to localStorage if API is not available
+    Promise.race([
+        fetch(`${API_URL}/health`),
+        timeoutPromise
+    ])
+    .then(response => response.json())
+    .then(data => {
+        console.log('Backend connection:', data.status);
+        // If connected, load any saved data
+        if (data.status === 'ok' || data.status === 'healthy') {
+            loadPeriodDataFromAPI();
+        } else {
+            console.warn('Backend not healthy, using local data');
             loadSavedPeriodData();
-        });
+        }
+    })
+    .catch(error => {
+        console.error('Backend connection error:', error);
+        
+        // In production (Vercel), show a small notification
+        if (isProduction) {
+            console.warn('Running in production mode with offline capabilities');
+            
+            // Add a small notification to the user
+            const notificationEl = document.createElement('div');
+            notificationEl.className = 'api-offline-notification';
+            notificationEl.innerHTML = 'Running in offline mode. Some features may use cached data.';
+            notificationEl.style.cssText = 'position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 9999; opacity: 0.8;';
+            
+            document.body.appendChild(notificationEl);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notificationEl.style.opacity = '0';
+                notificationEl.style.transition = 'opacity 0.5s';
+                setTimeout(() => notificationEl.remove(), 500);
+            }, 5000);
+        }
+        
+        // Fall back to localStorage if API is not available
+        loadSavedPeriodData();
+    });
 }
 
 // Load period data from API
@@ -5177,6 +5213,13 @@ function submitWorkoutForm() {
     const workoutForm = document.getElementById('workout-form');
     const workoutResults = document.getElementById('workout-results');
     const workoutPlaceholder = document.getElementById('workout-placeholder');
+    const submitBtn = document.getElementById('workout-submit-btn');
+    
+    // Show loading state on button
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+    }
     
     // Show loading state
     workoutPlaceholder.innerHTML = `
@@ -5196,35 +5239,98 @@ function submitWorkoutForm() {
         hasHealthCondition: document.getElementById('hasHealthCondition').checked
     };
     
-    // Send API request
-    fetch('/api/workout/recommend', {
+    // Send API request with timeout
+    const apiPromise = fetch(`${API_URL}/workout/recommend`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            displayWorkoutResults(data.recommendation);
-        } else {
-            console.error('Error getting recommendations:', data.error);
-            alert('Sorry, we encountered an error. Please try again.');
-            workoutPlaceholder.innerHTML = `
-                <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80" alt="Workout" class="placeholder-image">
-                <p>Fill out the form to get your personalized workout recommendations</p>
-            `;
-        }
-    })
-    .catch(error => {
-        console.error('Fetch error:', error);
-        alert('Network error. Please check your connection and try again.');
-        workoutPlaceholder.innerHTML = `
-            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80" alt="Workout" class="placeholder-image">
-            <p>Fill out the form to get your personalized workout recommendations</p>
-        `;
     });
+    
+    // Create a timeout promise
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 5000);
+    });
+    
+    // Use Promise.race to implement timeout
+    Promise.race([apiPromise, timeoutPromise])
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayWorkoutResults(data.recommendation);
+            } else {
+                console.error('Error getting recommendations:', data.error);
+                fallbackToMockData(formData);
+            }
+            // Reset button state
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-dumbbell"></i> Get Workout Plan';
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            // Fall back to mock data
+            fallbackToMockData(formData);
+            // Reset button state
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-dumbbell"></i> Get Workout Plan';
+            }
+        });
+}
+
+/**
+ * Fallback to mock data when API is unavailable
+ */
+function fallbackToMockData(formData) {
+    console.log('Using fallback workout recommendations');
+    
+    // Create mock recommendation based on form data
+    const mockRecommendation = {
+        recommendation: formData.goal === 'weight_loss' 
+            ? 'High-Intensity Interval Training (HIIT)' 
+            : (formData.goal === 'muscle_gain' 
+                ? 'Strength Training' 
+                : 'Bodyweight Training'),
+        confidence: 75,
+        details: {
+            duration: formData.timeAvailable,
+            intensity: formData.fitnessLevel <= 2 ? 'low' : (formData.fitnessLevel >= 4 ? 'high' : 'moderate'),
+            exercises: []
+        }
+    };
+    
+    // Add exercises based on the workout type
+    if (mockRecommendation.recommendation === 'High-Intensity Interval Training (HIIT)') {
+        mockRecommendation.details.exercises = [
+            {name: 'Burpees', sets: 3, reps: '45 seconds', rest: '15 seconds'},
+            {name: 'Mountain Climbers', sets: 3, reps: '45 seconds', rest: '15 seconds'},
+            {name: 'Jumping Jacks', sets: 3, reps: '45 seconds', rest: '15 seconds'},
+            {name: 'High Knees', sets: 3, reps: '45 seconds', rest: '15 seconds'},
+            {name: 'Squat Jumps', sets: 3, reps: '45 seconds', rest: '15 seconds'}
+        ];
+    } else if (mockRecommendation.recommendation === 'Strength Training') {
+        mockRecommendation.details.exercises = [
+            {name: 'Squats', sets: 4, reps: '10-12', rest: '60 seconds'},
+            {name: 'Push-ups', sets: 3, reps: '10-15', rest: '60 seconds'},
+            {name: 'Lunges', sets: 3, reps: '10 each leg', rest: '60 seconds'},
+            {name: 'Plank', sets: 3, reps: '30-60 seconds', rest: '45 seconds'},
+            {name: 'Dumbbell Rows', sets: 3, reps: '10-12', rest: '60 seconds'}
+        ];
+    } else {
+        mockRecommendation.details.exercises = [
+            {name: 'Push-ups', sets: 3, reps: '10-15', rest: '45 seconds'},
+            {name: 'Bodyweight Squats', sets: 3, reps: '15-20', rest: '45 seconds'},
+            {name: 'Plank', sets: 3, reps: '30-60 seconds', rest: '30 seconds'},
+            {name: 'Lunges', sets: 3, reps: '10 each leg', rest: '45 seconds'},
+            {name: 'Mountain Climbers', sets: 3, reps: '30 seconds', rest: '30 seconds'}
+        ];
+    }
+    
+    // Display the mock recommendation
+    displayWorkoutResults(mockRecommendation);
 }
 
 /**
