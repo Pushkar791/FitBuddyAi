@@ -1,8 +1,8 @@
 // API Configuration
 const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1');
 const API_URL = isProduction 
-    ? 'https://fit-buddy-ai.vercel.app/api'  // Production API URL
-    : 'http://localhost:8080/api';           // Local development API URL
+    ? '/api'  // Production API URL (relative path)
+    : 'http://localhost:8080/api';  // Local development API URL
 
 // Initialize audio context for the entire site
 function initAudioContext() {

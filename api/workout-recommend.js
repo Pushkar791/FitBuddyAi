@@ -1,7 +1,11 @@
 // Serverless function for workout recommendations
 // This file will be automatically recognized by Vercel as an API endpoint
+const fs = require('fs');
+const path = require('path');
 
 module.exports = (req, res) => {
+  console.log('Workout API called with path:', req.url);
+
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,12 +14,62 @@ module.exports = (req, res) => {
 
   // Handle OPTIONS request for CORS preflight
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS preflight request');
     res.status(200).end();
     return;
   }
 
+  // Route based on the path
+  if (req.url.includes('/api/workout/types')) {
+    return handleWorkoutTypes(req, res);
+  } else {
+    return handleWorkoutRecommendation(req, res);
+  }
+};
+
+/**
+ * Handle workout types request
+ */
+function handleWorkoutTypes(req, res) {
+  if (req.method !== 'GET') {
+    console.log(`Invalid method for workout types: ${req.method}`);
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  try {
+    const workoutTypes = [
+      'High-Intensity Interval Training (HIIT)',
+      'Strength Training',
+      'Cardio Endurance',
+      'Flexibility and Mobility',
+      'Circuit Training',
+      'Bodyweight Training',
+      'Yoga',
+      'CrossFit',
+      'Swimming',
+      'Running'
+    ];
+    
+    return res.status(200).json({
+      success: true,
+      workout_types: workoutTypes
+    });
+  } catch (error) {
+    console.error('Error getting workout types:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error: ' + error.message
+    });
+  }
+}
+
+/**
+ * Handle workout recommendation request
+ */
+function handleWorkoutRecommendation(req, res) {
   // Only handle POST requests
   if (req.method !== 'POST') {
+    console.log(`Invalid method: ${req.method}`);
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
@@ -23,7 +77,11 @@ module.exports = (req, res) => {
     // Get request body
     const userData = req.body;
     
+    // Log incoming request data
+    console.log('Received workout request data:', JSON.stringify(userData));
+    
     if (!userData) {
+      console.log('No request body provided');
       return res.status(400).json({ success: false, error: 'No request body provided' });
     }
     
@@ -45,8 +103,25 @@ module.exports = (req, res) => {
       has_health_condition: userData.hasHealthCondition ? 1 : 0
     };
     
+    // Try to load real workout data if available
+    let workoutData = null;
+    try {
+      const dataPath = path.join(process.cwd(), 'api', 'data', 'workout_data.json');
+      if (fs.existsSync(dataPath)) {
+        console.log('Loading workout data from file');
+        const rawData = fs.readFileSync(dataPath, 'utf8');
+        workoutData = JSON.parse(rawData);
+        console.log(`Loaded ${workoutData.length} workout data entries`);
+      }
+    } catch (dataError) {
+      console.warn('Error loading workout data file:', dataError.message);
+    }
+    
     // Generate a recommendation based on the processed data
-    const recommendation = generateWorkoutRecommendation(processedData);
+    const recommendation = generateWorkoutRecommendation(processedData, workoutData);
+    
+    // Log the recommendation
+    console.log('Generated recommendation:', recommendation.recommendation);
     
     // Return the recommendation
     return res.status(200).json({
@@ -60,12 +135,91 @@ module.exports = (req, res) => {
       error: 'Server error: ' + error.message
     });
   }
-};
+}
 
 /**
  * Generate a workout recommendation based on user data
  */
-function generateWorkoutRecommendation(userData) {
+function generateWorkoutRecommendation(userData, workoutData) {
+  // Use KNN-like approach if we have workout data
+  if (workoutData && Array.isArray(workoutData) && workoutData.length > 0) {
+    try {
+      // Simple KNN implementation
+      console.log('Using workout data for recommendation');
+      
+      // Calculate distance for each entry
+      const entries = workoutData.map(entry => {
+        // Calculate Euclidean distance for numerical features
+        const ageDiff = (entry.age - userData.age) / 50; // Normalize by dividing
+        const fitnessDiff = (entry.fitness_level - userData.fitness_level) / 5;
+        const timeDiff = (entry.time_available - userData.time_available) / 60;
+        const expDiff = (entry.experience_years - userData.experience_years) / 20;
+        
+        // Binary features
+        const genderDiff = entry.gender_encoded === userData.gender_encoded ? 0 : 1;
+        const goalDiff = entry.goal_encoded === userData.goal_encoded ? 0 : 1;
+        const equipDiff = entry.has_equipment === userData.has_equipment ? 0 : 1;
+        const healthDiff = entry.has_health_condition === userData.has_health_condition ? 0 : 1;
+        
+        // Calculate overall distance (weighted sum of squares)
+        const distance = Math.sqrt(
+          Math.pow(ageDiff, 2) * 1 +         // weight 1
+          Math.pow(genderDiff, 2) * 1 +      // weight 1
+          Math.pow(fitnessDiff, 2) * 2 +     // weight 2
+          Math.pow(goalDiff, 2) * 3 +        // weight 3
+          Math.pow(timeDiff, 2) * 1 +        // weight 1
+          Math.pow(expDiff, 2) * 1 +         // weight 1
+          Math.pow(equipDiff, 2) * 2 +       // weight 2
+          Math.pow(healthDiff, 2) * 2        // weight 2
+        );
+        
+        return {
+          distance,
+          workout: entry.recommended_workout
+        };
+      });
+      
+      // Sort by distance
+      entries.sort((a, b) => a.distance - b.distance);
+      
+      // Take k=5 nearest neighbors
+      const k = 5;
+      const neighbors = entries.slice(0, k);
+      
+      // Count workout frequencies
+      const workoutFreqs = {};
+      neighbors.forEach(n => {
+        workoutFreqs[n.workout] = (workoutFreqs[n.workout] || 0) + 1;
+      });
+      
+      // Find the most frequent workout
+      let maxFreq = 0;
+      let recommendedWorkout = null;
+      
+      for (const [workout, freq] of Object.entries(workoutFreqs)) {
+        if (freq > maxFreq) {
+          maxFreq = freq;
+          recommendedWorkout = workout;
+        }
+      }
+      
+      // Calculate confidence
+      const confidence = Math.round((maxFreq / k) * 100);
+      
+      // Generate workout details
+      const workoutDetails = getWorkoutDetails(recommendedWorkout, userData);
+      
+      return {
+        recommendation: recommendedWorkout,
+        confidence: confidence,
+        details: workoutDetails
+      };
+    } catch (err) {
+      console.error('Error using workout data:', err);
+      // Fall back to rule-based approach
+    }
+  }
+  
   // Define workout types based on user goals and equipment availability
   const workoutTypes = [
     'High-Intensity Interval Training (HIIT)',

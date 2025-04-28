@@ -4,7 +4,8 @@
   "description": "FitBuddy Workout Application",
   "main": "index.js",
   "scripts": {
-    "start": "serve frontend"
+    "start": "serve frontend",
+    "build": "bash ./vercel-build.sh"
   },
   "engines": {
     "node": ">=14.0.0"

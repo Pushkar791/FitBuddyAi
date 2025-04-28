@@ -10,14 +10,18 @@
       "use": "@vercel/node"
     },
     {
-      "src": "backend/app.py",
-      "use": "@vercel/python"
+      "src": "vercel-build.sh",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "api"
+      }
     }
   ],
   "routes": [
     { "src": "/api/workout/recommend", "dest": "/api/workout-recommend.js" },
+    { "src": "/api/workout/types", "dest": "/api/workout-recommend.js" },
     { "src": "/api/health", "dest": "/api/health.js" },
-    { "src": "/api/(.*)", "dest": "backend/app.py" },
-    { "src": "/(.*)", "dest": "frontend/$1" }
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
   ]
 } 
